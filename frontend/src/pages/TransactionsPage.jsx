@@ -3,6 +3,7 @@ import api from '../api/axios';
 import TransactionModal from '../components/TransactionModal';
 import ManageCategoriesModal from '../components/ManageCategoriesModal';
 import Spinner from '../components/Spinner';
+import useCurrency from '../hooks/useCurrency';
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
@@ -14,6 +15,7 @@ const TransactionsPage = () => {
   
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const { currency } = useCurrency();
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -117,7 +119,10 @@ const TransactionsPage = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{tx.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{tx.category}</td>
                   <td className={`px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}`}>
-                    {tx.isIncome ? '+' : '-'}${tx.cost.toFixed(2)}
+                    {tx.isIncome ? '+' : '-'}{new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: currency.code,
+                }).format(tx.cost)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">{new Date(tx.addedOn).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

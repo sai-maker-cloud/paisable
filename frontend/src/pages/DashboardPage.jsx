@@ -5,18 +5,27 @@ import CategoryPieChart from '../components/CategoryPieChart';
 import ExpensesBarChart from '../components/ExpensesBarChart';
 import TransactionModal from '../components/TransactionModal';
 import Spinner from '../components/Spinner';
+import useCurrency from '../hooks/useCurrency';
 
 // A reusable card component for the dashboard summary
-const SummaryCard = ({ title, value, bgColor, loading }) => (
-  <div className={`rounded-lg shadow-md p-6 ${bgColor}`}>
-    <h3 className="text-lg font-medium text-gray-800">{title}</h3>
-    {loading ? (
-      <div className="mt-2 h-8 bg-gray-300 rounded animate-pulse"></div>
-    ) : (
-      <p className="mt-2 text-3xl font-bold text-black">${value}</p>
-    )}
-  </div>
-);
+const SummaryCard = ({ title, value, bgColor, loading }) => {
+  const { currency } = useCurrency(); // Get the currency context
+  const formattedValue = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.code,
+  }).format(value);
+
+  return (
+    <div className={`rounded-lg shadow-md p-6 ${bgColor}`}>
+      <h3 className="text-lg font-medium text-gray-800">{title}</h3>
+      {loading ? (
+        <div className="mt-2 h-8 bg-gray-300 rounded animate-pulse"></div>
+      ) : (
+        <p className="mt-2 text-3xl font-bold text-black">{formattedValue}</p>
+      )}
+    </div>
+  );
+};
 
 const DashboardPage = () => {
   const [summaryData, setSummaryData] = useState({
