@@ -4,6 +4,7 @@ import api from '../api/axios';
 import CategoryPieChart from '../components/CategoryPieChart';
 import ExpensesBarChart from '../components/ExpensesBarChart';
 import TransactionModal from '../components/TransactionModal';
+import Spinner from '../components/Spinner';
 
 // A reusable card component for the dashboard summary
 const SummaryCard = ({ title, value, bgColor, loading }) => (
@@ -114,27 +115,27 @@ const DashboardPage = () => {
 
       {/* Charts Section */}
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Expenses by Category</h2>
-          {loading ? (
-            <div className="h-64 flex items-center justify-center bg-gray-100 rounded"><p>Loading Chart...</p></div>
-          ) : chartData?.expensesByCategory.length > 0 ? (
-            <CategoryPieChart data={chartData.expensesByCategory} />
-          ) : (
-            <div className="h-64 flex items-center justify-center bg-gray-100 rounded"><p>No expense data to display.</p></div>
-          )}
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Spending</h2>
-          {loading ? (
-            <div className="h-64 flex items-center justify-center bg-gray-100 rounded"><p>Loading Chart...</p></div>
-          ) : chartData?.expensesOverTime.length > 0 ? (
-            <ExpensesBarChart data={chartData.expensesOverTime} />
-          ) : (
-            <div className="h-64 flex items-center justify-center bg-gray-100 rounded"><p>No recent expense data to display.</p></div>
-          )}
-        </div>
-      </div>
+  <div className="bg-white p-6 rounded-lg shadow-md">
+    <h2 className="text-xl font-bold text-gray-800 mb-4">Expenses by Category</h2>
+    {loading ? (
+      <Spinner />
+    ) : chartData?.expensesByCategory.length > 0 ? (
+      <CategoryPieChart data={chartData.expensesByCategory} />
+    ) : (
+      <div className="h-64 flex items-center justify-center bg-gray-100 rounded"><p>No expense data to display.</p></div>
+    )}
+  </div>
+  <div className="bg-white p-6 rounded-lg shadow-md">
+    <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Spending</h2>
+    {loading ? (
+      <Spinner />
+    ) : chartData?.expensesOverTime.length > 0 ? (
+      <ExpensesBarChart data={chartData.expensesOverTime} />
+    ) : (
+      <div className="h-64 flex items-center justify-center bg-gray-100 rounded"><p>No recent expense data to display.</p></div>
+    )}
+  </div>
+</div>
       
       {/* Transaction Modal */}
       <TransactionModal 

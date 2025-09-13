@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 import TransactionModal from '../components/TransactionModal';
 import ManageCategoriesModal from '../components/ManageCategoriesModal';
+import Spinner from '../components/Spinner';
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
@@ -96,8 +97,10 @@ const TransactionsPage = () => {
         </div>
       </div>
 
-      {loading ? ( <p>Loading...</p> ) : (
-        <div className="bg-white shadow rounded-lg overflow-x-auto">
+      {loading ? (
+  <Spinner />
+) : (
+  <div className="bg-white shadow rounded-lg overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
