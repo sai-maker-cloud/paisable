@@ -7,26 +7,48 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
+  // Add a loading state to handle the initial auth check
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
+  
   useEffect(() => {
-    if (token) {
-      // You might want to add a call here to verify the token with the backend
-      // and get user info. For now, we'll just assume the token is valid.
-      setUser({ token });
-    }
-  }, [token]);
+    const verifyUser = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        setToken(storedToken);
+        // Set the token for all future api requests
+        api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        try {
+          // Check if the token is valid by fetching user data
+          const response = await api.get('/auth/me');
+          setUser(response.data);
+        } catch (error) {
+          // If token is invalid, clear it
+          console.error("Token verification failed", error);
+          localStorage.removeItem('token');
+          setUser(null);
+          setToken(null);
+        }
+      }
+      setLoading(false); // Finished checking
+    };
+    
+    verifyUser();
+  }, []);
 
   const login = async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { token } = response.data;
-      setToken(token);
-      setUser({ token });
-      localStorage.setItem('token', token);
+      const { token: newToken, ...userData } = response.data;
+      
+      setToken(newToken);
+      setUser(userData);
+      localStorage.setItem('token', newToken);
+      api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+      
       navigate('/dashboard');
     } catch (error) {
-      console.error('Login failed', error.response.data);
+      console.error('Login failed', error.response?.data);
       // You should handle the error, e.g., show a notification
     }
   };
@@ -34,13 +56,16 @@ export const AuthProvider = ({ children }) => {
   const signup = async (email, password) => {
     try {
       const response = await api.post('/auth/signup', { email, password });
-      const { token } = response.data;
-      setToken(token);
-      setUser({ token });
-      localStorage.setItem('token', token);
+      const { token: newToken, ...userData } = response.data;
+
+      setToken(newToken);
+      setUser(userData);
+      localStorage.setItem('token', newToken);
+      api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+      
       navigate('/dashboard');
     } catch (error) {
-      console.error('Signup failed', error.response.data);
+      console.error('Signup failed', error.response?.data);
     }
   };
 
@@ -48,11 +73,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
+    delete api.defaults.headers.common['Authorization'];
     navigate('/login');
   };
-
+  
+  // Make sure to provide the new loading state
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -68,7 +68,17 @@ const login = async (req, res) => {
   }
 };
 
+// @desc    Get user data
+// @route   GET /api/auth/me
+// @access  Private
+const getMe = async (req, res) => {
+  // The user is already available in req.user
+  res.status(200).json(req.user);
+};
+
+
 module.exports = {
   signup,
   login,
+  getMe,
 };

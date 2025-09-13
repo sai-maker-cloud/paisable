@@ -26,18 +26,22 @@ const DashboardPage = () => {
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // State for the modal
+  // State for the modal and categories
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [summaryRes, chartRes] = await Promise.all([
+      // Fetch summary, chart data, and categories all at once
+      const [summaryRes, chartRes, categoriesRes] = await Promise.all([
         api.get('/transactions/summary'),
-        api.get('/transactions/charts')
+        api.get('/transactions/charts'),
+        api.get('/transactions/categories')
       ]);
       setSummaryData(summaryRes.data);
       setChartData(chartRes.data);
+      setCategories(categoriesRes.data);
     } catch (error) {
       console.error("Failed to fetch dashboard data", error);
     } finally {
@@ -49,7 +53,7 @@ const DashboardPage = () => {
     fetchData();
   }, [fetchData]);
   
-  // Simplified modal handler functions
+  // Modal handler functions
   const handleOpenModal = () => {
     setIsModalOpen(true);
   };
@@ -61,15 +65,21 @@ const DashboardPage = () => {
   const handleFormSubmit = async (formData) => {
     try {
       await api.post('/transactions', formData);
-      fetchData(); // Refresh all dashboard data
+      fetchData(); // Refresh all dashboard data after submission
       handleCloseModal();
     } catch (error) {
       console.error("Failed to save transaction", error);
     }
   };
 
+  // Function to handle a new category being added from the modal
+  const handleNewCategory = (newCategory) => {
+    // Add the new category to the state so it's available in the dropdown immediately
+    setCategories(prev => [...prev, newCategory].sort());
+  };
+
   return (
-    <Layout>
+    <div>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
         <button 
@@ -126,13 +136,15 @@ const DashboardPage = () => {
         </div>
       </div>
       
-      {/* Transaction Modal (no default type prop needed) */}
+      {/* Transaction Modal */}
       <TransactionModal 
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSubmit={handleFormSubmit}
+        categories={categories}
+        onNewCategory={handleNewCategory}
       />
-    </Layout>
+    </div>
   );
 };
 

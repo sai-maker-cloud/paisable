@@ -1,8 +1,8 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 
-const Layout = ({ children }) => {
+const Layout = () => {
   const { logout } = useAuth();
 
   return (
@@ -32,7 +32,7 @@ const Layout = ({ children }) => {
 
       <main>
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          {children}
+          <Outlet />
         </div>
       </main>
     </div>
