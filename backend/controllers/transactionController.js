@@ -188,6 +188,60 @@ const getChartData = async (req, res) => {
   }
 };
 
+// @desc    Get all unique categories for a user
+// @route   GET /api/transactions/categories
+// @access  Private
+const getCategories = async (req, res) => {
+  try {
+    // 1. Define a list of default categories
+    const defaultCategories = [
+      'Food',
+      'Shopping',
+      'Bills',
+      'Subscriptions',
+      'Transportation',
+      'Salary',
+      'Entertainment',
+      'Groceries',
+      'Miscellaneous'
+    ];
+    
+    // 2. Get the user's custom categories from the database
+    const userCategories = await IncomeExpense.distinct('category', { user: req.user._id });
+    
+    // 3. Combine, de-duplicate, and sort the lists
+    const combinedCategories = [...new Set([...defaultCategories, ...userCategories])];
+    combinedCategories.sort();
+    
+    res.json(combinedCategories);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Delete a user-defined category
+// @route   DELETE /api/transactions/category
+// @access  Private
+const deleteCategory = async (req, res) => {
+  const { categoryToDelete } = req.body;
+
+  if (!categoryToDelete) {
+    return res.status(400).json({ message: 'Category name is required' });
+  }
+
+  try {
+    // Re-assign all transactions with this category to 'Miscellaneous'
+    await IncomeExpense.updateMany(
+      { user: req.user._id, category: categoryToDelete },
+      { $set: { category: 'Miscellaneous' } }
+    );
+
+    res.json({ message: `Category '${categoryToDelete}' deleted successfully. Associated transactions moved to 'Miscellaneous'.` });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
 module.exports = {
   addTransaction,
   getTransactions,
@@ -195,4 +249,6 @@ module.exports = {
   deleteTransaction,
   getTransactionSummary,
   getChartData,
+  getCategories,
+  deleteCategory,
 };

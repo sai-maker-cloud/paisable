@@ -3,12 +3,12 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import TransactionsPage from './pages/TransactionsPage';
+import ReceiptsPage from './pages/ReceiptsPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
 import useAuth from './hooks/useAuth';
-import TransactionsPage from './pages/TransactionsPage'; 
-import ReceiptsPage from './pages/ReceiptsPage'; 
 
-// A component to handle the root URL path
 const Home = () => {
   const { user } = useAuth();
   return user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />;
@@ -17,37 +17,24 @@ const Home = () => {
 function App() {
   return (
     <Routes>
+      {/* Public Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      
-      {/* Redirect root path based on auth status */}
-      <Route path="/" element={<Home />} /> 
+      <Route path="/" element={<Home />} />
 
-      {/* Protected Routes */}
+      {/* Protected Routes Wrapper */}
       <Route 
-        path="/dashboard" 
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <Layout />
           </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/transactions" 
-        element={
-          <ProtectedRoute>
-            <TransactionsPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/receipts" 
-        element={
-          <ProtectedRoute>
-            <ReceiptsPage />
-          </ProtectedRoute>
-        } 
-      />
+        }
+      >
+        {/* All routes nested here will share the Layout and be protected */}
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/transactions" element={<TransactionsPage />} />
+        <Route path="/receipts" element={<ReceiptsPage />} />
+      </Route>
     </Routes>
   );
 }

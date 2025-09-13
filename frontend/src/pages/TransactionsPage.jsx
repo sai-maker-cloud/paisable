@@ -1,82 +1,102 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
-import Layout from '../components/Layout';
 import TransactionModal from '../components/TransactionModal';
+import ManageCategoriesModal from '../components/ManageCategoriesModal';
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
+  const [categories, setCategories] = useState([]);
+  
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
-  const fetchTransactions = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/transactions?page=${page}&limit=10`);
-      setTransactions(response.data.transactions);
-      setTotalPages(response.data.totalPages);
+      const [transactionsRes, categoriesRes] = await Promise.all([
+        api.get(`/transactions?page=${page}&limit=10`),
+        api.get('/transactions/categories')
+      ]);
+      setTransactions(transactionsRes.data.transactions);
+      setTotalPages(transactionsRes.data.totalPages);
+      setCategories(categoriesRes.data);
     } catch (error) {
-      console.error("Failed to fetch transactions", error);
+      console.error("Failed to fetch transactions data", error);
     } finally {
       setLoading(false);
     }
   }, [page]);
 
   useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+    fetchData();
+  }, [fetchData]);
 
-  const handleOpenModal = (transaction = null) => {
+  const handleOpenTransactionModal = (transaction = null) => {
     setEditingTransaction(transaction);
-    setIsModalOpen(true);
+    setIsTransactionModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCloseTransactionModal = () => {
+    setIsTransactionModalOpen(false);
     setEditingTransaction(null);
   };
-
+  
   const handleFormSubmit = async (formData, id) => {
     try {
-      if (id) {
-        // Update transaction
-        await api.put(`/transactions/${id}`, formData);
-      } else {
-        // Add new transaction
-        await api.post('/transactions', formData);
-      }
-      fetchTransactions(); // Refresh the list
-      handleCloseModal();
+      if (id) await api.put(`/transactions/${id}`, formData);
+      else await api.post('/transactions', formData);
+      fetchData();
+      handleCloseTransactionModal();
     } catch (error) {
       console.error("Failed to save transaction", error);
     }
   };
-  
-  const handleDelete = async (id) => {
-    if(window.confirm("Are you sure you want to delete this transaction?")) {
+
+  const handleDeleteTransaction = async (id) => {
+    if (window.confirm("Are you sure you want to delete this transaction?")) {
       try {
         await api.delete(`/transactions/${id}`);
-        fetchTransactions(); // Refresh the list
+        fetchData();
       } catch (error) {
         console.error("Failed to delete transaction", error);
       }
     }
   };
+  
+  const handleNewCategory = (newCategory) => {
+    setCategories(prev => [...prev, newCategory].sort());
+  };
+
+  const handleDeleteCategory = async (categoryToDelete) => {
+    if (window.confirm(`Are you sure you want to delete the category "${categoryToDelete}"? All associated transactions will be moved to "Miscellaneous".`)) {
+      try {
+        await api.delete('/transactions/category', { data: { categoryToDelete } });
+        fetchData(); 
+      } catch (error) {
+        console.error("Failed to delete category", error);
+      }
+    }
+  };
 
   return (
-    <Layout>
-      <div className="flex justify-between items-center mb-6">
+    <>
+      <div className="flex flex-wrap gap-4 justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-        <button onClick={() => handleOpenModal()} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-          Add Transaction
-        </button>
+        <div className="flex gap-4">
+          <button onClick={() => setIsCategoryModalOpen(true)} className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+            Manage Categories
+          </button>
+          <button onClick={() => handleOpenTransactionModal()} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Add Transaction
+          </button>
+        </div>
       </div>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
+      {loading ? ( <p>Loading...</p> ) : (
         <div className="bg-white shadow rounded-lg overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -98,8 +118,8 @@ const TransactionsPage = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">{new Date(tx.addedOn).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onClick={() => handleOpenModal(tx)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
-                    <button onClick={() => handleDelete(tx._id)} className="text-red-600 hover:text-red-900">Delete</button>
+                    <button onClick={() => handleOpenTransactionModal(tx)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
+                    <button onClick={() => handleDeleteTransaction(tx._id)} className="text-red-600 hover:text-red-900">Delete</button>
                   </td>
                 </tr>
               ))}
@@ -108,7 +128,6 @@ const TransactionsPage = () => {
         </div>
       )}
       
-      {/* Pagination Controls */}
       <div className="flex justify-between items-center mt-4">
         <button onClick={() => setPage(p => Math.max(p - 1, 1))} disabled={page === 1} className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
           Previous
@@ -120,12 +139,21 @@ const TransactionsPage = () => {
       </div>
 
       <TransactionModal 
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        isOpen={isTransactionModalOpen}
+        onClose={handleCloseTransactionModal}
         onSubmit={handleFormSubmit}
         transaction={editingTransaction}
+        categories={categories}
+        onNewCategory={handleNewCategory}
       />
-    </Layout>
+      
+      <ManageCategoriesModal 
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+        allCategories={categories}
+        onDelete={handleDeleteCategory}
+      />
+    </>
   );
 };
 
