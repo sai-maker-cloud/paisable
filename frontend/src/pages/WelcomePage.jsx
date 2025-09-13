@@ -32,7 +32,7 @@ export default function WelcomePage() {
       {/* Header */}
       <header className="py-4 px-8 flex justify-between items-center bg-white dark:bg-gray-800 shadow-md">
         <Link to="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-          Paisaible
+          Paisable
         </Link>
         <div className="flex items-center gap-4">
           <ThemeToggle />
