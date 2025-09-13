@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
-import PasswordInput from '../components/PasswordInput'; // Import the new component
+import PasswordInput from '../components/PasswordInput';
+
+// Demo user credentials
+const DEMO_EMAIL = 'test@example.com';
+const DEMO_PASSWORD = 'password123';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,6 +17,12 @@ export default function LoginPage() {
     login(email, password);
   };
 
+  // New handler to auto-fill the fields
+  const handleFillDemoCredentials = () => {
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="px-8 py-6 text-left bg-white dark:bg-gray-800 shadow-lg rounded-lg w-full max-w-md">
@@ -21,34 +31,25 @@ export default function LoginPage() {
           <div className="mt-4">
             <div>
               <label className="block text-gray-700 dark:text-gray-300" htmlFor="email">Email</label>
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-gray-600"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <input type="email" placeholder="Email" className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-gray-600" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="mt-4">
               <label className="block text-gray-700 dark:text-gray-300" htmlFor="password">Password</label>
-              {/* Replace the old input with the new component */}
-              <PasswordInput 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
-            <div className="flex items-baseline justify-between">
-              <button type="submit" className="w-full px-6 py-2 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-900">
-                Login
+            <div className="flex flex-col gap-4 mt-4">
+              <button type="submit" className="w-full px-6 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">Login</button>
+              {/* Updated Demo Button */}
+              <button 
+                type="button" 
+                onClick={handleFillDemoCredentials} 
+                className="w-full px-6 py-2 text-blue-600 dark:text-blue-400 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                Fill Demo Credentials
               </button>
             </div>
             <div className="mt-6 text-gray-600 dark:text-gray-400">
-              Don't have an account?
-              <Link to="/register" className="text-blue-600 hover:underline ml-2">
-                Register
-              </Link>
+              Don't have an account? <Link to="/register" className="text-blue-600 hover:underline ml-2">Register</Link>
             </div>
           </div>
         </form>

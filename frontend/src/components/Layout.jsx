@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, Link } from 'react-router-dom'; // 1. Import Link
 import useAuth from '../hooks/useAuth';
 import CurrencySelector from './CurrencySelector';
 import ThemeToggle from './ThemeToggle';
@@ -21,9 +21,10 @@ const Layout = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <span className="font-bold text-xl text-blue-600 dark:text-blue-400">
+              {/* 2. Wrap the span in a Link to the dashboard */}
+              <Link to="/dashboard" className="font-bold text-xl text-blue-600 dark:text-blue-400">
                 Paisable
-              </span>
+              </Link>
               <div className="hidden md:block">
                 <div className="ml-10 flex items-baseline space-x-4">
                   <NavLink to="/dashboard" className={getNavLinkClass}>

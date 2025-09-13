@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const CategoryPieChart = ({ data }) => {
+const CategoryPieChart = ({ data, theme }) => {
   const chartData = {
     labels: data.map(d => d.name),
     datasets: [
@@ -31,8 +31,24 @@ const CategoryPieChart = ({ data }) => {
       },
     ],
   };
+  const options = useMemo(() => {
+    const isDarkMode = theme === 'dark';
+    const textColor = isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)';
 
-  return <Pie data={chartData} />;
+    return {
+      cutout: '60%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: textColor,
+          },
+        },
+      },
+    };
+  }, [theme]);
+
+  return <Pie data={chartData} options={options} />;
 };
 
 export default CategoryPieChart;

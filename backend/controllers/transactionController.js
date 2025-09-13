@@ -117,36 +117,29 @@ const deleteTransaction = async (req, res) => {
 const getTransactionSummary = async (req, res) => {
   try {
     const summary = await IncomeExpense.aggregate([
-      // Filter for the user's non-deleted transactions
-      {
-        $match: {
-          user: req.user._id,
-          isDeleted: false,
-        },
-      },
-      // Group by income/expense and sum the costs
-      {
-        $group: {
-          _id: '$isIncome',
-          total: { $sum: '$cost' },
-        },
-      },
+      { $match: { user: req.user._id, isDeleted: false } },
+      { $group: { _id: '$isIncome', total: { $sum: '$cost' } } },
     ]);
 
     let totalIncome = 0;
     let totalExpenses = 0;
 
     summary.forEach(group => {
-      if (group._id === true) { // isIncome is true
+      if (group._id === true) {
         totalIncome = group.total;
-      } else { // isIncome is false
+      } else {
         totalExpenses = group.total;
       }
     });
     
     const balance = totalIncome - totalExpenses;
+    // 5 most recent transactions
+    const recentTransactions = await IncomeExpense.find({ user: req.user._id, isDeleted: false })
+      .sort({ addedOn: -1 }) // Sort by date descending
+      .limit(5);
 
-    res.json({ totalIncome, totalExpenses, balance });
+    // Add recentTransactions to the JSON response
+    res.json({ totalIncome, totalExpenses, balance, recentTransactions });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
@@ -158,6 +151,8 @@ const getTransactionSummary = async (req, res) => {
 const getChartData = async (req, res) => {
   try {
     const userId = req.user._id;
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     // Data for Expenses by Category (Pie Chart)
     const expensesByCategory = await IncomeExpense.aggregate([
@@ -166,10 +161,7 @@ const getChartData = async (req, res) => {
       { $project: { name: '$_id', total: 1, _id: 0 } }
     ]);
 
-    // Data for Expenses Over Time (Bar Chart) - last 30 days
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
+    // Data for Expenses Over Time (Bar Chart)
     const expensesOverTime = await IncomeExpense.aggregate([
       { $match: { user: userId, isIncome: false, isDeleted: false, addedOn: { $gte: thirtyDaysAgo } } },
       { 
@@ -178,12 +170,27 @@ const getChartData = async (req, res) => {
           total: { $sum: '$cost' } 
         } 
       },
-      { $sort: { _id: 1 } }, // Sort by date
+      { $sort: { _id: 1 } },
       { $project: { date: '$_id', total: 1, _id: 0 } }
     ]);
     
-    res.json({ expensesByCategory, expensesOverTime });
+    // Data for Income Over Time (Bar Chart)
+    const incomeOverTime = await IncomeExpense.aggregate([
+      { $match: { user: userId, isIncome: true, isDeleted: false, addedOn: { $gte: thirtyDaysAgo } } },
+      { 
+        $group: { 
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$addedOn" } }, 
+          total: { $sum: '$cost' } 
+        } 
+      },
+      { $sort: { _id: 1 } },
+      { $project: { date: '$_id', total: 1, _id: 0 } }
+    ]);
+    
+    res.json({ expensesByCategory, expensesOverTime, incomeOverTime });
   } catch (error) {
+    // Also log the error to the backend console for easier debugging
+    console.error('Error in getChartData:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
