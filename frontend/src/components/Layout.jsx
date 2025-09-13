@@ -22,7 +22,7 @@ const Layout = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <span className="font-bold text-xl text-blue-600 dark:text-blue-400">
-                Finance Tracker
+                Paisable
               </span>
               <div className="hidden md:block">
                 <div className="ml-10 flex items-baseline space-x-4">
