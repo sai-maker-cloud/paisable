@@ -5,14 +5,17 @@ import App from './App.jsx';
 import './index.css';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { CurrencyProvider } from './contexts/CurrencyContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Router>
       <AuthProvider>
-        <CurrencyProvider>
-          <App />
-        </CurrencyProvider>
+        <ThemeProvider> {/* Add ThemeProvider */}
+          <CurrencyProvider>
+            <App />
+          </CurrencyProvider>
+        </ThemeProvider>
       </AuthProvider>
     </Router>
   </React.StrictMode>,
