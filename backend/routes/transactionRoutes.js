@@ -7,6 +7,7 @@ const {
   updateTransaction,
   deleteTransaction,
   getTransactionSummary,
+  getChartData,
 } = require('../controllers/transactionController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -16,6 +17,7 @@ router.route('/')
   .post(protect, addTransaction);
 
 router.route('/summary').get(protect, getTransactionSummary);
+router.route('/charts').get(protect, getChartData);
 
 // Route for updating and deleting a specific transaction
 router.route('/:id')

@@ -152,10 +152,47 @@ const getTransactionSummary = async (req, res) => {
   }
 };
 
+// @desc    Get data for charts
+// @route   GET /api/transactions/charts
+// @access  Private
+const getChartData = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Data for Expenses by Category (Pie Chart)
+    const expensesByCategory = await IncomeExpense.aggregate([
+      { $match: { user: userId, isIncome: false, isDeleted: false } },
+      { $group: { _id: '$category', total: { $sum: '$cost' } } },
+      { $project: { name: '$_id', total: 1, _id: 0 } }
+    ]);
+
+    // Data for Expenses Over Time (Bar Chart) - last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const expensesOverTime = await IncomeExpense.aggregate([
+      { $match: { user: userId, isIncome: false, isDeleted: false, addedOn: { $gte: thirtyDaysAgo } } },
+      { 
+        $group: { 
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$addedOn" } }, 
+          total: { $sum: '$cost' } 
+        } 
+      },
+      { $sort: { _id: 1 } }, // Sort by date
+      { $project: { date: '$_id', total: 1, _id: 0 } }
+    ]);
+    
+    res.json({ expensesByCategory, expensesOverTime });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
 module.exports = {
   addTransaction,
   getTransactions,
   updateTransaction,
   deleteTransaction,
   getTransactionSummary,
+  getChartData,
 };

@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
-const TransactionModal = ({ isOpen, onClose, onSubmit, transaction }) => {
+const TransactionModal = ({ isOpen, onClose, onSubmit, transaction, defaultIsIncome = false }) => {
   const [formData, setFormData] = useState({
     name: '',
     category: '',
     cost: '',
     addedOn: new Date().toISOString().split('T')[0],
-    isIncome: false,
+    isIncome: defaultIsIncome,
   });
 
   useEffect(() => {
     if (transaction) {
+      // Logic for editing an existing transaction
       setFormData({
         name: transaction.name,
         category: transaction.category,
@@ -19,16 +20,16 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, transaction }) => {
         isIncome: transaction.isIncome,
       });
     } else {
-      // Reset to default when opening for a new transaction
+      // Reset to default for a new transaction, using the new prop
       setFormData({
         name: '',
         category: '',
         cost: '',
         addedOn: new Date().toISOString().split('T')[0],
-        isIncome: false,
+        isIncome: defaultIsIncome, // Use the prop here
       });
     }
-  }, [transaction, isOpen]);
+  }, [transaction, isOpen, defaultIsIncome]); // Add prop to dependency array
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

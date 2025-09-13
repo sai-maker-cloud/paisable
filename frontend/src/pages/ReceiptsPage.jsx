@@ -77,7 +77,7 @@ const ReceiptsPage = () => {
               <p><strong>Category:</strong> {receiptResult.extractedData.category}</p>
               <p><strong>Date:</strong> {new Date(receiptResult.extractedData.date).toLocaleDateString()}</p>
               <img src={`http://localhost:5001${receiptResult.fileUrl}`} alt="Uploaded Receipt" className="mt-4 rounded-lg max-w-full h-auto" />
-              {/* Here you could add a button to "Create Transaction from Receipt" */}
+        
             </div>
           ) : (
             <p className="text-gray-500">Upload a receipt to see the extracted data here.</p>
