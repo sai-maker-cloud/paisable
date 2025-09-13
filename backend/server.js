@@ -12,11 +12,24 @@ connectDB();
 
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(express.json()); // To accept JSON data in the body
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://paisable.netlify.app"
+];
 
-// Define Routes
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
+app.use(express.json());
+
+// Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/receipts', require('./routes/receiptRoutes'));
