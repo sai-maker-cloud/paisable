@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import PasswordInput from '../components/PasswordInput'; // Import the new component
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,17 +14,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="px-8 py-6 mt-4 text-left bg-white shadow-lg rounded-lg">
-        <h3 className="text-2xl font-bold text-center">Login to your account</h3>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+      <div className="px-8 py-6 text-left bg-white dark:bg-gray-800 shadow-lg rounded-lg w-full max-w-md">
+        <h3 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-200">Login to your account</h3>
         <form onSubmit={handleSubmit}>
           <div className="mt-4">
             <div>
-              <label className="block" htmlFor="email">Email</label>
+              <label className="block text-gray-700 dark:text-gray-300" htmlFor="email">Email</label>
               <input
                 type="email"
                 placeholder="Email"
-                className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600"
+                className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-gray-600"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -31,15 +32,11 @@ export default function LoginPage() {
               />
             </div>
             <div className="mt-4">
-              <label className="block" htmlFor="password">Password</label>
-              <input
-                type="password"
-                placeholder="Password"
-                className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600"
-                id="password"
+              <label className="block text-gray-700 dark:text-gray-300" htmlFor="password">Password</label>
+              {/* Replace the old input with the new component */}
+              <PasswordInput 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
               />
             </div>
             <div className="flex items-baseline justify-between">
@@ -47,7 +44,7 @@ export default function LoginPage() {
                 Login
               </button>
             </div>
-            <div className="mt-6 text-grey-dark">
+            <div className="mt-6 text-gray-600 dark:text-gray-400">
               Don't have an account?
               <Link to="/register" className="text-blue-600 hover:underline ml-2">
                 Register
