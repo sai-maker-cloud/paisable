@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import useAuth from './hooks/useAuth';
 import TransactionsPage from './pages/TransactionsPage'; 
+import ReceiptsPage from './pages/ReceiptsPage'; 
 
 // A component to handle the root URL path
 const Home = () => {
@@ -36,6 +37,14 @@ function App() {
         element={
           <ProtectedRoute>
             <TransactionsPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/receipts" 
+        element={
+          <ProtectedRoute>
+            <ReceiptsPage />
           </ProtectedRoute>
         } 
       />
