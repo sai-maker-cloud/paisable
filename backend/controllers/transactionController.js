@@ -1,0 +1,120 @@
+const IncomeExpense = require('../models/IncomeExpense');
+
+// @desc    Add a new transaction
+// @route   POST /api/transactions
+// @access  Private
+const addTransaction = async (req, res) => {
+  const { name, category, cost, addedOn, isIncome } = req.body;
+
+  try {
+    const transaction = new IncomeExpense({
+      user: req.user.id,
+      name,
+      category,
+      cost,
+      addedOn,
+      isIncome,
+    });
+
+    const createdTransaction = await transaction.save();
+    res.status(201).json(createdTransaction);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Get all transactions for a user with filtering and pagination
+// @route   GET /api/transactions
+// @access  Private
+const getTransactions = async (req, res) => {
+  try {
+    const { isIncome, category, startDate, endDate, page = 1, limit = 10 } = req.query;
+
+    const filter = { user: req.user.id, isDeleted: false };
+    
+    if (isIncome) filter.isIncome = isIncome;
+    if (category) filter.category = category;
+    if (startDate || endDate) {
+      filter.addedOn = {};
+      if (startDate) filter.addedOn.$gte = new Date(startDate);
+      if (endDate) filter.addedOn.$lte = new Date(endDate);
+    }
+    
+    const transactions = await IncomeExpense.find(filter)
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .sort({ addedOn: -1 });
+      
+    const count = await IncomeExpense.countDocuments(filter);
+
+    res.json({
+      transactions,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Update a transaction
+// @route   PUT /api/transactions/:id
+// @access  Private
+const updateTransaction = async (req, res) => {
+  try {
+    const transaction = await IncomeExpense.findById(req.params.id);
+
+    if (!transaction) {
+      return res.status(404).json({ message: 'Transaction not found' });
+    }
+
+    // Check if the transaction belongs to the user
+    if (transaction.user.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'User not authorized' });
+    }
+
+    const { name, category, cost, addedOn, isIncome } = req.body;
+    transaction.name = name || transaction.name;
+    transaction.category = category || transaction.category;
+    transaction.cost = cost || transaction.cost;
+    transaction.addedOn = addedOn || transaction.addedOn;
+    transaction.isIncome = (isIncome !== undefined) ? isIncome : transaction.isIncome;
+
+    const updatedTransaction = await transaction.save();
+    res.json(updatedTransaction);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Delete a transaction (soft delete)
+// @route   DELETE /api/transactions/:id
+// @access  Private
+const deleteTransaction = async (req, res) => {
+  try {
+    const transaction = await IncomeExpense.findById(req.params.id);
+    
+    if (!transaction) {
+      return res.status(404).json({ message: 'Transaction not found' });
+    }
+
+    if (transaction.user.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'User not authorized' });
+    }
+
+    transaction.isDeleted = true;
+    await transaction.save();
+    
+    res.json({ message: 'Transaction removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+
+module.exports = {
+  addTransaction,
+  getTransactions,
+  updateTransaction,
+  deleteTransaction,
+};
