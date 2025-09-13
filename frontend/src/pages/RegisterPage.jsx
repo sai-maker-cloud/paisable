@@ -7,6 +7,8 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  // State for server-side errors
+  const [serverError, setServerError] = useState('');
   const { signup } = useAuth();
 
   const validate = () => {
@@ -14,6 +16,13 @@ export default function RegisterPage() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       newErrors.email = 'Please enter a valid email address.';
+    } else {
+      // Frontend blacklist for instant feedback
+      const domain = email.split('@')[1];
+      const blockedDomains = ['example.com', 'test.com', 'invalid.com'];
+      if (blockedDomains.includes(domain)) {
+        newErrors.email = 'This email domain is not allowed.';
+      }
     }
 
     if (password.length < 8 || password.length > 16) {
@@ -28,21 +37,29 @@ export default function RegisterPage() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setServerError(''); // Clear previous server errors
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
     setErrors({});
-    signup(email, password);
+    
+    // The signup function in AuthContext needs to be updated to handle errors
+    try {
+      await signup(email, password);
+    } catch (error) {
+      setServerError(error.message);
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="px-8 py-6 text-left bg-white dark:bg-gray-800 shadow-lg rounded-lg w-full max-w-md">
         <h3 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-200">Create an account</h3>
+        {serverError && <p className="text-center text-red-500 bg-red-100 dark:bg-red-900/50 p-2 rounded-md my-4">{serverError}</p>}
         <form onSubmit={handleSubmit}>
           <div className="mt-4">
             <div>

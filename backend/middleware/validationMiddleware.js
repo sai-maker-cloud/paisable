@@ -1,10 +1,32 @@
 const { body, validationResult } = require('express-validator');
+const dns = require('dns');
 
 const validateRegistration = [
   // Validate email
   body('email')
     .isEmail()
-    .withMessage('Please enter a valid email address.'),
+    .withMessage('Please enter a valid email address.')
+    .bail() // Stop running validators if the previous one failed
+    .custom(async (email) => {
+      const domain = email.split('@')[1];
+
+      // Quick blacklist for common invalid domains
+      const blockedDomains = ['example.com', 'test.com', 'invalid.com'];
+      if (blockedDomains.includes(domain)) {
+        return Promise.reject('This email domain is not allowed.');
+      }
+
+      // Check for valid MX records
+      try {
+        const addresses = await dns.promises.resolveMx(domain);
+        if (!addresses || addresses.length === 0) {
+          return Promise.reject('Email domain does not exist or cannot receive mail.');
+        }
+      } catch (error) {
+        // If DNS resolution fails
+        return Promise.reject('Email domain does not exist or cannot receive mail.');
+      }
+    }),
 
   // Validate password
   body('password')
@@ -17,7 +39,7 @@ const validateRegistration = [
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ message: errors.array()[0].msg });
     }
     next();
   },

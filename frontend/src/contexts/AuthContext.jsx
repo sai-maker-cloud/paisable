@@ -7,7 +7,6 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
-  // Add a loading state to handle the initial auth check
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
@@ -16,14 +15,13 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
         setToken(storedToken);
-        // Set the token for all future api requests
         api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         try {
           // Check if the token is valid by fetching user data
           const response = await api.get('/auth/me');
           setUser(response.data);
         } catch (error) {
-          // If token is invalid, clear it
+          // Clear invalid token
           console.error("Token verification failed", error);
           localStorage.removeItem('token');
           setUser(null);
@@ -49,7 +47,6 @@ export const AuthProvider = ({ children }) => {
       navigate('/dashboard');
     } catch (error) {
       console.error('Login failed', error.response?.data);
-      // You should handle the error, e.g., show a notification
     }
   };
 
@@ -66,6 +63,7 @@ export const AuthProvider = ({ children }) => {
       navigate('/dashboard');
     } catch (error) {
       console.error('Signup failed', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Signup failed. Please try again.');
     }
   };
 
@@ -77,7 +75,6 @@ export const AuthProvider = ({ children }) => {
     navigate('/login');
   };
   
-  // Make sure to provide the new loading state
   return (
     <AuthContext.Provider value={{ user, token, loading, login, signup, logout }}>
       {children}
