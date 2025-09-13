@@ -111,10 +111,51 @@ const deleteTransaction = async (req, res) => {
   }
 };
 
+// @desc    Get transaction summary for a user
+// @route   GET /api/transactions/summary
+// @access  Private
+const getTransactionSummary = async (req, res) => {
+  try {
+    const summary = await IncomeExpense.aggregate([
+      // Filter for the user's non-deleted transactions
+      {
+        $match: {
+          user: req.user._id,
+          isDeleted: false,
+        },
+      },
+      // Group by income/expense and sum the costs
+      {
+        $group: {
+          _id: '$isIncome',
+          total: { $sum: '$cost' },
+        },
+      },
+    ]);
+
+    let totalIncome = 0;
+    let totalExpenses = 0;
+
+    summary.forEach(group => {
+      if (group._id === true) { // isIncome is true
+        totalIncome = group.total;
+      } else { // isIncome is false
+        totalExpenses = group.total;
+      }
+    });
+    
+    const balance = totalIncome - totalExpenses;
+
+    res.json({ totalIncome, totalExpenses, balance });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
 
 module.exports = {
   addTransaction,
   getTransactions,
   updateTransaction,
   deleteTransaction,
+  getTransactionSummary,
 };

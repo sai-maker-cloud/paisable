@@ -9,10 +9,20 @@ const {
 
 const { protect } = require('../middleware/authMiddleware');
 
+const {
+  addTransaction,
+  getTransactions,
+  updateTransaction,
+  deleteTransaction,
+  getTransactionSummary,
+} = require('../controllers/transactionController');
+
 // Route for getting all and adding a new transaction
 router.route('/')
   .get(protect, getTransactions)
   .post(protect, addTransaction);
+  
+router.route('/summary').get(protect, getTransactionSummary);
 
 // Route for updating and deleting a specific transaction
 router.route('/:id')
