@@ -170,8 +170,12 @@ You can:
 
 ### 💰 Transactions
 
-* `GET /api/transactions` → Get all transactions
+* `GET /api/transactions` → Get all transactions (paginated)
 * `POST /api/transactions` → Create a new transaction
+* `GET /api/transactions/summary` → Get income, expense, balance, and recent transactions
+* `GET /api/transactions/charts` → Get data for dashboard charts
+* `GET /api/transactions/categories` → Get unique transaction categories
+* `DELETE /api/transactions/category` → Delete a custom category
 
 ### 📊 Analytics
 
@@ -180,8 +184,7 @@ You can:
 
 ### 🧾 Receipts
 
-* `POST /api/receipts/upload` → Upload receipt image
-* `POST /api/receipts/ocr` → Extract data from receipt (via Google Gemini OCR)
+* `POST /api/receipts/upload` → Upload receipt, trigger Gemini OCR, and create a transaction in one step
 
 ---
 
@@ -210,5 +213,6 @@ This project is licensed under the [MIT License](LICENSE).
 ## 👤 Author
 
 Developed by **Archa** (@archa8)
+
 
 
