@@ -1,0 +1,224 @@
+openapi: 3.0.3
+info:
+  title: Finance Tracker API
+  description: API documentation for the Finance Tracker application (backend built with Node.js, Express, MongoDB, and Google Gemini for OCR).
+  version: 1.1.0
+servers:
+  - url: https://your-backend.onrender.com/api
+    description: Production server
+  - url: http://localhost:5000/api
+    description: Local development server
+
+paths:
+  /auth/signup:
+    post:
+      summary: User Signup
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          description: Validation error
+
+  /auth/login:
+    post:
+      summary: User Login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Successful login with JWT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        "401":
+          description: Invalid credentials
+
+  /auth/me:
+    get:
+      summary: Get Current User
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Returns current user details
+        "401":
+          description: Unauthorized
+
+  /transactions:
+    get:
+      summary: Get All Transactions
+      tags: [Transactions]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of user transactions
+    post:
+      summary: Create Transaction
+      tags: [Transactions]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Grocery
+                category:
+                  type: string
+                  example: Food
+                cost:
+                  type: number
+                  example: 100
+                isIncome:
+                  type: boolean
+                  example: false
+      responses:
+        "201":
+          description: Transaction created successfully
+
+  /analytics/summary:
+    get:
+      summary: Get Expense Summary
+      tags: [Analytics]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: period
+          schema:
+            type: string
+            enum: [weekly, monthly, yearly]
+          description: Time period for analytics
+      responses:
+        "200":
+          description: Returns summary of expenses/income
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalIncome:
+                    type: number
+                  totalExpense:
+                    type: number
+                  netBalance:
+                    type: number
+
+  /analytics/categories:
+    get:
+      summary: Get Category Breakdown
+      tags: [Analytics]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Expense breakdown by category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    category:
+                      type: string
+                    total:
+                      type: number
+
+  /receipts/upload:
+    post:
+      summary: Upload Receipt
+      tags: [Receipts]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                receipt:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Receipt uploaded successfully
+
+  /receipts/ocr:
+    post:
+      summary: Extract Data from Receipt
+      description: Uses Google Gemini AI to extract structured data (items, prices, total) from uploaded receipt images.
+      tags: [Receipts]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                receipt:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Extracted data from receipt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        price:
+                          type: number
+                  total:
+                    type: number
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
