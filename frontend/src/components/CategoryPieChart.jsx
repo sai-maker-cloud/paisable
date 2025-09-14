@@ -42,6 +42,7 @@ const CategoryPieChart = ({ data, theme }) => {
           position: 'bottom',
           labels: {
             color: textColor,
+            padding: 20,
           },
         },
       },
