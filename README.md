@@ -44,6 +44,46 @@ Paisable is a **full-stack personal finance management app** built with **React 
 
 ---
 
+###  :file_folder: Project Structure
+
+```
+.
+├── backend/
+│ ├── server.js # Express app entry
+│ ├── package.json
+│ ├── config/
+│ │ └── db.js
+│ ├── routes/
+│ │ ├── authRoutes.js
+│ │ ├── transactionRoutes.js
+│ │ └── receiptRoutes.js
+│ ├── middleware/
+│ ├── controllers/
+│ ├── models/
+│ └── uploads/ # static served files (receipts)
+│
+├── docs/
+│ ├── openapi.yaml
+│
+├── frontend/
+│ ├── src/
+│ │ ├── pages/
+│ │ ├── components/
+│ │ ├── contexts/
+│ │ └── api/
+│ │ └── config/
+│ │ └── hooks/
+│ ├── App.jsx
+│ ├── main.jsx
+│ ├── package.json
+│ ├── vite.config.js
+│ ├── tailwindcss.config.js
+│
+└── README.md
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### 1️⃣ Clone the repository
@@ -171,3 +211,4 @@ This project is licensed under the [ISC License](LICENSE).
 ## 👤 Author
 
 Developed by **Archa** ✨
+
