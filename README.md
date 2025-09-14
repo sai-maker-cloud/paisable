@@ -14,6 +14,13 @@ Paisable is a **full-stack personal finance management app** built with **React 
 
 ---
 
+## 🔗 Deployment Links
+
+* Frontend: https://paisable.netlify.app/
+* Backend: https://paisable.onrender.com
+
+---
+
 ## 🏗️ Tech Stack
 
 **Frontend:**
@@ -194,21 +201,14 @@ You can:
 
 ---
 
-## 📈 Future Improvements
-
-* 📱 Mobile PWA support
-* 🔔 Budget alerts & notifications
-* 🏦 Bank account integration
-
----
-
 ## 📝 License
 
-This project is licensed under the [ISC License](LICENSE).
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
 ## 👤 Author
 
-Developed by **Archa** ✨
+Developed by **Archa** (@archa8)
+
 
