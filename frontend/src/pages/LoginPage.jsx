@@ -17,14 +17,17 @@ export default function LoginPage() {
     login(email, password);
   };
 
-  // New handler to auto-fill the fields
   const handleFillDemoCredentials = () => {
     setEmail(DEMO_EMAIL);
     setPassword(DEMO_PASSWORD);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 px-4">
+      <Link to="/" className="text-4xl font-bold text-blue-600 dark:text-blue-400 font-montserrat mb-8">
+        Paisable
+      </Link>
+
       <div className="px-8 py-6 text-left bg-white dark:bg-gray-800 shadow-lg rounded-lg w-full max-w-md">
         <h3 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-200">Login to your account</h3>
         <form onSubmit={handleSubmit}>
@@ -39,7 +42,6 @@ export default function LoginPage() {
             </div>
             <div className="flex flex-col gap-4 mt-4">
               <button type="submit" className="w-full px-6 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">Login</button>
-              {/* Updated Demo Button */}
               <button 
                 type="button" 
                 onClick={handleFillDemoCredentials} 
