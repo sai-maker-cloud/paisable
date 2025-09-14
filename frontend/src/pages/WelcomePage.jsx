@@ -68,7 +68,7 @@ export default function WelcomePage() {
 
       {/* Footer */}
       <footer className="py-8 text-center text-gray-500 dark:text-gray-400">
-        <p>&copy; {new Date().getFullYear()} Paisaible. All Rights Reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Paisable. All Rights Reserved.</p>
       </footer>
     </div>
   );
