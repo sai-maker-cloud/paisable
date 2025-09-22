@@ -3,12 +3,6 @@
 Paisable is a **full-stack personal finance management app** built with **React (frontend), Node.js/Express (backend), MongoDB (database)**, and enhanced with **Google Gemini AI for OCR-based receipt scanning**. It helps users track income, expenses, receipts, and visualize financial analytics via charts.
 
 ---
-# Demo Video
-
-![paisable screenshot](https://github.com/user-attachments/assets/12c0ab29-c81a-4527-98c3-b151073248e7)
-![Video](https://drive.google.com/file/d/1v7T5RZq4JB2Ur9rY2OKUHR9yoJxgdpsb/view?usp=sharing)
-
----
 
 ## ✨ Features
 
@@ -219,6 +213,7 @@ This project is licensed under the [MIT License](LICENSE).
 ## 👤 Author
 
 Developed by **Archa** (@archa8)
+
 
 
 
