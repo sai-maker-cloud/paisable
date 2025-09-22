@@ -1,6 +1,6 @@
 # Contributing to Paisable
 
-First off, thank you for considering contributing to Paisaible! 🎉 We're excited to see what you build. This project is a great place to learn and practice your full-stack development skills.
+First off, thank you for considering contributing to Paisable! 🎉 We're excited to see what you build. This project is a great place to learn and practice your full-stack development skills.
 
 This document provides guidelines for contributing to the project. Whether you're fixing a bug, adding a new feature, or improving documentation, your help is greatly appreciated.
 
