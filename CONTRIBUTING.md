@@ -78,6 +78,8 @@ git commit -m "feat: Add date range filters to transactions page"
 - refactor: Code changes that neither fix a bug nor add a feature
 - test: Adding or correcting tests
 
+Read more [here](https://www.conventionalcommits.org/en/v1.0.0/) for guidelines on how to write commit messages.
+
 ### 8. Push to Your Branch
 Push your changes up to your forked repository.
 ```bash
