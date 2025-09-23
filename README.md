@@ -212,9 +212,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 👤 Author
 
-Developed by **Archa** (@archa8)
-
-
-
-
-
+Developed by [**Archa**](https://github.com/archa8)
