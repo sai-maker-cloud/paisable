@@ -83,11 +83,16 @@ Paisable is a **full-stack personal finance management app** built with **React 
 
 ## Getting Started
 
-### Clone the repository
+### Fork the repository
+Before cloning, make sure to fork the repository to your GitHub account.
+1. Go to the GitHub repo page: https://github.com/Code-A2Z/paisable
+2. Click Fork in the top-right corner.
+
+### Clone your fork
 
 ```bash
-git clone https://github.com/archa8/finance-tracker-typeface.git
-cd finance-tracker-typeface
+git clone https://github.com/your-username/paisable.git
+cd paisable
 ```
 
 ### Backend Setup
