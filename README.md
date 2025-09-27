@@ -43,7 +43,7 @@ Paisable is a **full-stack personal finance management app** built with **React 
 * Backend → Render
 * Database → MongoDB Atlas
 
-###  :file_folder: Project Structure
+### Project Structure
 
 ```
 .
@@ -139,7 +139,7 @@ Frontend will run on → `http://localhost:5173`
 
 The full API reference is defined in **OpenAPI 3.0** format.
 
-📖 See the file → [`docs/openapi.yaml`](./docs/openapi.yaml)
+See the file → [`docs/openapi.yaml`](./docs/openapi.yaml)
 
 You can:
 
@@ -193,4 +193,5 @@ This project is licensed under the [MIT License](LICENSE).
 ## 👤 Author
 
 Developed by [**Archa**](https://github.com/archa8)
+
 
