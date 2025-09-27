@@ -1,13 +1,13 @@
 # Contributing to Paisable
 
-First off, thank you for considering contributing to Paisable! 🎉 We're excited to see what you build. This project is a great place to learn and practice your full-stack development skills.
+First off, thank you for considering contributing to Paisable! We're excited to see what you build. This project is a great place to learn and practice your full-stack development skills.
 
 This document provides guidelines for contributing to the project. Whether you're fixing a bug, adding a new feature, or improving documentation, your help is greatly appreciated.
 
-## 🤝 Code of Conduct
+## Code of Conduct
 We have a [Code of Conduct](CODE_OF_CONDUCT.md) to ensure our community is welcoming and inclusive for everyone. Please take a moment to read it before you get started.
 
-## 🤔 How Can I Contribute?
+## How Can I Contribute?
 There are many ways to contribute, from writing code and tests to improving the documentation.
 
 ### Reporting Bugs
@@ -24,7 +24,7 @@ You can find issues to work on in the [Issues tab](https://github.com/Code-A2Z/p
 
 Before you start working on an issue, please leave a comment asking to be assigned to it.
 
-## 🚀 The Contribution Workflow
+## Contribution Workflow
 Ready to contribute? Here’s how to set up your development environment and submit your changes.
 
 ### 1. Fork the Repository
