@@ -2,20 +2,20 @@
 
 Paisable is a **full-stack personal finance management app** built with **React (frontend), Node.js/Express (backend), MongoDB (database)**, and enhanced with **Google Gemini AI for OCR-based receipt scanning**. It helps users track income, expenses, receipts, and visualize financial analytics via charts.
 
-## ✨ Features
+## Features
 
-* 🔑 **Authentication** – JWT-based login & signup
-* 💰 **Transactions Management** – Add income and expenses with categories
-* 📊 **Analytics & Charts** – Visual breakdown by category, income/expense trends
-* 🧾 **Receipt Management** – Upload receipts and automatically extract expense details using **Google Gemini OCR**
-* 🌐 **Full-Stack Deployment Ready** – Backend on **Render**, frontend on **Netlify**
+* **Authentication** – JWT-based login & signup
+* **Transactions Management** – Add income and expenses with categories
+* **Analytics & Charts** – Visual breakdown by category, income/expense trends
+* **Receipt Management** – Upload receipts and automatically extract expense details using **Google Gemini OCR**
+* **Full-Stack Deployment Ready** – Backend on **Render**, frontend on **Netlify**
 
-## 🔗 Deployment Links
+## Deployment Links
 
 * Frontend: https://paisable.netlify.app/
 * Backend: https://paisable.onrender.com
 
-## 🏗️ Tech Stack
+## Tech Stack
 
 **Frontend:**
 
@@ -81,16 +81,16 @@ Paisable is a **full-stack personal finance management app** built with **React 
 └── README.md
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
-### 1️⃣ Clone the repository
+### Clone the repository
 
 ```bash
 git clone https://github.com/archa8/finance-tracker-typeface.git
 cd finance-tracker-typeface
 ```
 
-### 2️⃣ Backend Setup
+### Backend Setup
 
 ```bash
 cd backend
@@ -114,7 +114,7 @@ npm run dev
 
 Backend will run on → `http://localhost:5000`
 
-### 3️⃣ Frontend Setup
+### Frontend Setup
 
 ```bash
 cd frontend
@@ -135,7 +135,7 @@ npm run dev
 
 Frontend will run on → `http://localhost:5173`
 
-## 🗄️ API Documentation
+## API Documentation
 
 The full API reference is defined in **OpenAPI 3.0** format.
 
@@ -146,15 +146,15 @@ You can:
 * Open it in [Swagger Editor](https://editor.swagger.io/)
 * Import into **Postman** or **Insomnia**
 
-## 📡 Core API Endpoints
+## Core API Endpoints
 
-### 🔑 Auth
+### Auth
 
 * `POST /api/auth/signup` → Register new user
 * `POST /api/auth/login` → Login user
 * `GET /api/auth/me` → Fetch logged-in user profile
 
-### 💰 Transactions
+### Transactions
 
 * `GET /api/transactions` → Get all transactions (paginated)
 * `POST /api/transactions` → Create a new transaction
@@ -163,16 +163,16 @@ You can:
 * `GET /api/transactions/categories` → Get unique transaction categories
 * `DELETE /api/transactions/category` → Delete a custom category
 
-### 📊 Analytics
+### Analytics
 
 * `GET /api/analytics/summary` → Income vs Expense summary
 * `GET /api/analytics/categories` → Expense breakdown by category
 
-### 🧾 Receipts
+### Receipts
 
 * `POST /api/receipts/upload` → Upload receipt, trigger Gemini OCR, and create a transaction in one step
 
-## 📦 Deployment
+## Deployment
 
 ### Backend → Render
 
@@ -186,10 +186,11 @@ You can:
 * Publish Directory: `dist`
 * Environment Variable: `VITE_API_URL=https://your-backend.onrender.com/api`
 
-## 📝 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
 
 ## 👤 Author
 
 Developed by [**Archa**](https://github.com/archa8)
+
