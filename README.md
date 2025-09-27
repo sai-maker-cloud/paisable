@@ -195,8 +195,9 @@ You can:
 
 This project is licensed under the [MIT License](LICENSE).
 
-## 👤 Author
+## Author
 
 Developed by [**Archa**](https://github.com/archa8)
+
 
 
