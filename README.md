@@ -2,8 +2,6 @@
 
 Paisable is a **full-stack personal finance management app** built with **React (frontend), Node.js/Express (backend), MongoDB (database)**, and enhanced with **Google Gemini AI for OCR-based receipt scanning**. It helps users track income, expenses, receipts, and visualize financial analytics via charts.
 
----
-
 ## ✨ Features
 
 * 🔑 **Authentication** – JWT-based login & signup
@@ -12,14 +10,10 @@ Paisable is a **full-stack personal finance management app** built with **React 
 * 🧾 **Receipt Management** – Upload receipts and automatically extract expense details using **Google Gemini OCR**
 * 🌐 **Full-Stack Deployment Ready** – Backend on **Render**, frontend on **Netlify**
 
----
-
 ## 🔗 Deployment Links
 
 * Frontend: https://paisable.netlify.app/
 * Backend: https://paisable.onrender.com
-
----
 
 ## 🏗️ Tech Stack
 
@@ -48,8 +42,6 @@ Paisable is a **full-stack personal finance management app** built with **React 
 * Frontend → Netlify
 * Backend → Render
 * Database → MongoDB Atlas
-
----
 
 ###  :file_folder: Project Structure
 
@@ -88,8 +80,6 @@ Paisable is a **full-stack personal finance management app** built with **React 
 │
 └── README.md
 ```
-
----
 
 ## 🚀 Getting Started
 
@@ -145,8 +135,6 @@ npm run dev
 
 Frontend will run on → `http://localhost:5173`
 
----
-
 ## 🗄️ API Documentation
 
 The full API reference is defined in **OpenAPI 3.0** format.
@@ -157,8 +145,6 @@ You can:
 
 * Open it in [Swagger Editor](https://editor.swagger.io/)
 * Import into **Postman** or **Insomnia**
-
----
 
 ## 📡 Core API Endpoints
 
@@ -186,8 +172,6 @@ You can:
 
 * `POST /api/receipts/upload` → Upload receipt, trigger Gemini OCR, and create a transaction in one step
 
----
-
 ## 📦 Deployment
 
 ### Backend → Render
@@ -202,13 +186,9 @@ You can:
 * Publish Directory: `dist`
 * Environment Variable: `VITE_API_URL=https://your-backend.onrender.com/api`
 
----
-
 ## 📝 License
 
 This project is licensed under the [MIT License](LICENSE).
-
----
 
 ## 👤 Author
 
