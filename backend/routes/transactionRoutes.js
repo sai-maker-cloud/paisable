@@ -10,18 +10,22 @@ const {
   getChartData,
   getCategories,
   deleteCategory,
+  getTransactionStats, 
 } = require('../controllers/transactionController');
 
 const { protect } = require('../middleware/authMiddleware');
+
 // Route for getting all and adding a new transaction
 router.route('/')
   .get(protect, getTransactions)
   .post(protect, addTransaction);
 
+// Specific routes (order matters - more specific routes first)
 router.route('/summary').get(protect, getTransactionSummary);
 router.route('/charts').get(protect, getChartData);
 router.route('/categories').get(protect, getCategories);
-router.route('/category').delete(protect, deleteCategory); 
+router.route('/category').delete(protect, deleteCategory);
+router.route('/stats').get(protect, getTransactionStats);
 
 // Route for updating and deleting a specific transaction
 router.route('/:id')
