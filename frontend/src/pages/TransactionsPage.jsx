@@ -5,6 +5,26 @@ import ManageCategoriesModal from '../components/ManageCategoriesModal';
 import Spinner from '../components/Spinner';
 import useCurrency from '../hooks/useCurrency';
 
+const handleExportCSV = async () => {
+  try {
+    const res = await api.get('/transactions/export', {
+      responseType: 'blob', // Important for file download
+    });
+    const blob = new Blob([res.data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'paisable_transactions.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Failed to export CSV", error);
+    alert("Failed to export CSV. Please try again.");
+  }
+};
+
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,26 +102,6 @@ const TransactionsPage = () => {
       } catch (error) {
         console.error("Failed to delete category", error);
       }
-    }
-  };
-
-  const handleExportCSV = async () => {
-    try {
-      const res = await api.get('/transactions/export', {
-        responseType: 'blob', // Important for file download
-      });
-      const blob = new Blob([res.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'paisable_transactions.csv';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Failed to export CSV", error);
-      alert("Failed to export CSV. Please try again.");
     }
   };
 
@@ -192,4 +192,4 @@ const TransactionsPage = () => {
   );
 };
 
-export default TransactionsPage;
+export {TransactionsPage,handleExportCSV};
