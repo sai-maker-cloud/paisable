@@ -3,6 +3,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const cron = require('./cron');
 
 // Load environment variables
 dotenv.config();
