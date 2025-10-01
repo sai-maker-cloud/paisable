@@ -1,14 +1,14 @@
-import React from 'react';
-import { Outlet, NavLink, Link } from 'react-router-dom'; // 1. Import Link
-import useAuth from '../hooks/useAuth';
-import CurrencySelector from './CurrencySelector';
-import ThemeToggle from './ThemeToggle';
+import React from "react";
+import { Outlet, NavLink, Link } from "react-router-dom"; // 1. Import Link
+import useAuth from "../hooks/useAuth";
+import CurrencySelector from "./CurrencySelector";
+import ThemeToggle from "./ThemeToggle";
 
 const Layout = () => {
   const { logout } = useAuth();
 
   const getNavLinkClass = ({ isActive }) => {
-    const baseClasses = 'px-3 py-2 rounded-md text-sm font-medium';
+    const baseClasses = "px-3 py-2 rounded-md text-sm font-medium";
     if (isActive) {
       return `${baseClasses} bg-blue-600 text-white`;
     }
@@ -22,7 +22,10 @@ const Layout = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               {/* 2. Wrap the span in a Link to the dashboard */}
-              <Link to="/dashboard" className="font-bold text-xl text-blue-600 dark:text-blue-400">
+              <Link
+                to="/dashboard"
+                className="font-bold text-xl text-blue-600 dark:text-blue-400"
+              >
                 Paisable
               </Link>
               <div className="hidden md:block">
@@ -38,6 +41,9 @@ const Layout = () => {
                   </NavLink>
                   <NavLink to="/settings" className={getNavLinkClass}>
                     Settings
+                  </NavLink>
+                  <NavLink to="/budgets" className={getNavLinkClass}>
+                    Budgets
                   </NavLink>
                 </div>
               </div>
