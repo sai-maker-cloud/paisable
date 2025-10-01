@@ -1,13 +1,14 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import {TransactionsPage} from './pages/TransactionsPage';
-import ReceiptsPage from './pages/ReceiptsPage';
-import WelcomePage from './pages/WelcomePage';
-import ProtectedRoute from './components/ProtectedRoute';
-import Layout from './components/Layout';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import DashboardPage from "./pages/DashboardPage";
+import { TransactionsPage } from "./pages/TransactionsPage";
+import ReceiptsPage from "./pages/ReceiptsPage";
+import WelcomePage from "./pages/WelcomePage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from "./components/Layout";
+import Budgets from "./pages/Budgets";
 
 function App() {
   return (
@@ -18,7 +19,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
 
       {/* Protected Routes Wrapper */}
-      <Route 
+      <Route
         element={
           <ProtectedRoute>
             <Layout />
@@ -28,6 +29,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/receipts" element={<ReceiptsPage />} />
+        <Route path="/budgets" element={<Budgets />} />
       </Route>
     </Routes>
   );
