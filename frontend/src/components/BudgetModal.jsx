@@ -46,7 +46,6 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Category
@@ -66,7 +65,6 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
             </select>
           </div>
 
-          {/* Amount */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Amount
@@ -82,7 +80,6 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
             />
           </div>
 
-          {/* Month */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Month
@@ -99,7 +96,6 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
             />
           </div>
 
-          {/* Year */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Year
