@@ -3,23 +3,15 @@ const Papa = require('papaparse');
 // @desc    Add a new transaction
 // @route   POST /api/transactions
 // @access  Private
-// @desc    Add a new transaction
 const addTransaction = async (req, res) => {
   const { name, category, cost, addedOn, isIncome } = req.body;
 
   try {
-    // Convert and validate cost
-    const numericCost = typeof cost === 'string' ? parseFloat(cost) : cost;
-    
-    if (isNaN(numericCost) || numericCost <= 0) {
-      return res.status(400).json({ message: 'Cost must be a positive number' });
-    }
-
     const transaction = new IncomeExpense({
       user: req.user.id,
       name,
       category,
-      cost: numericCost, // Use the converted number
+      cost,
       addedOn,
       isIncome,
     });
@@ -31,72 +23,36 @@ const addTransaction = async (req, res) => {
   }
 };
 
-// @desc    Get all transactions for a user with enhanced filtering and pagination
+// @desc    Get all transactions for a user with filtering and pagination
 // @route   GET /api/transactions
 // @access  Private
 const getTransactions = async (req, res) => {
   try {
     const { isIncome, category, startDate, endDate, page = 1, limit = 10 } = req.query;
 
-    const pageNum = Math.max(1, parseInt(page));
-    const limitNum = Math.max(1, Math.min(50, parseInt(limit))); 
-
     const filter = { user: req.user.id, isDeleted: false };
     
-    // Filter by income/expense type
-    if (isIncome !== undefined && isIncome !== '') {
-      filter.isIncome = isIncome === 'true';
-    }
-    
-    // Filter by category
-    if (category && category !== '') {
-      filter.category = category;
-    }
-    
-    // Filter by date range
+    if (isIncome) filter.isIncome = isIncome;
+    if (category) filter.category = category;
     if (startDate || endDate) {
       filter.addedOn = {};
-      
-      if (startDate) {
-        const start = new Date(startDate);
-        if (!isNaN(start.getTime())) {
-          start.setHours(0, 0, 0, 0);
-          filter.addedOn.$gte = start;
-        }
-      }
-      
-      if (endDate) {
-        const end = new Date(endDate);
-        if (!isNaN(end.getTime())) {
-          end.setHours(23, 59, 59, 999);
-          filter.addedOn.$lte = end;
-        }
-      }
+      if (startDate) filter.addedOn.$gte = new Date(startDate);
+      if (endDate) filter.addedOn.$lte = new Date(endDate);
     }
     
-    // Execute query with pagination
-    const [transactions, totalCount] = await Promise.all([
-      IncomeExpense.find(filter)
-        .sort({ addedOn: -1, createdAt: -1 }) // Sort by date descending, then by creation time
-        .limit(limitNum)
-        .skip((pageNum - 1) * limitNum)
-        .lean(), 
-      IncomeExpense.countDocuments(filter)
-    ]);
-
-    // Calculate pagination info
-    const totalPages = Math.ceil(totalCount / limitNum);
+    const transactions = await IncomeExpense.find(filter)
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .sort({ addedOn: -1 });
+      
+    const count = await IncomeExpense.countDocuments(filter);
 
     res.json({
       transactions,
-      totalPages,
-      currentPage: pageNum,
-      totalTransactions: totalCount,
-      hasNextPage: pageNum < totalPages,
-      hasPrevPage: pageNum > 1,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
     });
   } catch (error) {
-    console.error('Error in getTransactions:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
@@ -118,28 +74,6 @@ const updateTransaction = async (req, res) => {
     }
 
     const { name, category, cost, addedOn, isIncome } = req.body;
-    
-    // Validate cost if provided
-    if (cost !== undefined) {
-     
-     const numericCost = typeof cost === 'string' ? parseFloat(cost) : cost;
-     
-     // Check if it's a valid positive number
-     if (isNaN(numericCost) || numericCost <= 0) {
-       return res.status(400).json({ message: 'Cost must be a positive number' });
-     }
-     
-     transaction.cost = numericCost;
-   }
-
-    // Validate date if provided
-    if (addedOn !== undefined) {
-      const date = new Date(addedOn);
-      if (isNaN(date.getTime())) {
-        return res.status(400).json({ message: 'Invalid date format' });
-      }
-    }
-
     transaction.name = name || transaction.name;
     transaction.category = category || transaction.category;
     transaction.cost = cost || transaction.cost;
@@ -149,7 +83,6 @@ const updateTransaction = async (req, res) => {
     const updatedTransaction = await transaction.save();
     res.json(updatedTransaction);
   } catch (error) {
-    console.error('Error in updateTransaction:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
@@ -174,42 +107,17 @@ const deleteTransaction = async (req, res) => {
     
     res.json({ message: 'Transaction removed successfully' });
   } catch (error) {
-    console.error('Error in deleteTransaction:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
 
-// @desc    Get transaction summary for a user with optional date filtering
+// @desc    Get transaction summary for a user
 // @route   GET /api/transactions/summary
 // @access  Private
 const getTransactionSummary = async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
-    
-    
-    const filter = { user: req.user._id, isDeleted: false };
-    
-    // Add date filtering if provided
-    if (startDate || endDate) {
-      filter.addedOn = {};
-      if (startDate) {
-        const start = new Date(startDate);
-        if (!isNaN(start.getTime())) {
-          start.setHours(0, 0, 0, 0);
-          filter.addedOn.$gte = start;
-        }
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        if (!isNaN(end.getTime())) {
-          end.setHours(23, 59, 59, 999);
-          filter.addedOn.$lte = end;
-        }
-      }
-    }
-
     const summary = await IncomeExpense.aggregate([
-      { $match: filter },
+      { $match: { user: req.user._id, isDeleted: false } },
       { $group: { _id: '$isIncome', total: { $sum: '$cost' } } },
     ]);
 
@@ -225,65 +133,37 @@ const getTransactionSummary = async (req, res) => {
     });
     
     const balance = totalIncome - totalExpenses;
-    
-    
-    const recentTransactions = await IncomeExpense.find(filter)
-      .sort({ addedOn: -1 })
+    // 5 most recent transactions
+    const recentTransactions = await IncomeExpense.find({ user: req.user._id, isDeleted: false })
+      .sort({ addedOn: -1 }) // Sort by date descending
       .limit(5);
 
+    // Add recentTransactions to the JSON response
     res.json({ totalIncome, totalExpenses, balance, recentTransactions });
   } catch (error) {
-    console.error('Error in getTransactionSummary:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
 
-// @desc    Get data for charts with optional date filtering
+// @desc    Get data for charts
 // @route   GET /api/transactions/charts
 // @access  Private
 const getChartData = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { startDate, endDate } = req.query;
-    
-    // Default to last 30 days if no dates provided
-    let dateFilter = {};
-    if (startDate || endDate) {
-      dateFilter.addedOn = {};
-      if (startDate) {
-        const start = new Date(startDate);
-        if (!isNaN(start.getTime())) {
-          start.setHours(0, 0, 0, 0);
-          dateFilter.addedOn.$gte = start;
-        }
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        if (!isNaN(end.getTime())) {
-          end.setHours(23, 59, 59, 999);
-          dateFilter.addedOn.$lte = end;
-        }
-      }
-    } else {
-      // Default to last 30 days
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      dateFilter.addedOn = { $gte: thirtyDaysAgo };
-    }
-
-    const baseFilter = { user: userId, isDeleted: false, ...dateFilter };
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     // Data for Expenses by Category (Pie Chart)
     const expensesByCategory = await IncomeExpense.aggregate([
-      { $match: { ...baseFilter, isIncome: false } },
+      { $match: { user: userId, isIncome: false, isDeleted: false } },
       { $group: { _id: '$category', total: { $sum: '$cost' } } },
-      { $project: { name: '$_id', total: 1, _id: 0 } },
-      { $sort: { total: -1 } }
+      { $project: { name: '$_id', total: 1, _id: 0 } }
     ]);
 
     // Data for Expenses Over Time (Bar Chart)
     const expensesOverTime = await IncomeExpense.aggregate([
-      { $match: { ...baseFilter, isIncome: false } },
+      { $match: { user: userId, isIncome: false, isDeleted: false, addedOn: { $gte: thirtyDaysAgo } } },
       { 
         $group: { 
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$addedOn" } }, 
@@ -296,7 +176,7 @@ const getChartData = async (req, res) => {
     
     // Data for Income Over Time (Bar Chart)
     const incomeOverTime = await IncomeExpense.aggregate([
-      { $match: { ...baseFilter, isIncome: true } },
+      { $match: { user: userId, isIncome: true, isDeleted: false, addedOn: { $gte: thirtyDaysAgo } } },
       { 
         $group: { 
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$addedOn" } }, 
@@ -309,6 +189,7 @@ const getChartData = async (req, res) => {
     
     res.json({ expensesByCategory, expensesOverTime, incomeOverTime });
   } catch (error) {
+    // Also log the error to the backend console for easier debugging
     console.error('Error in getChartData:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
@@ -319,7 +200,7 @@ const getChartData = async (req, res) => {
 // @access  Private
 const getCategories = async (req, res) => {
   try {
-    // Define default categories
+    // 1. Define a list of default categories
     const defaultCategories = [
       'Food',
       'Shopping',
@@ -332,19 +213,15 @@ const getCategories = async (req, res) => {
       'Miscellaneous'
     ];
     
-    // Get user's custom categories from the database
-    const userCategories = await IncomeExpense.distinct('category', { 
-      user: req.user._id,
-      isDeleted: false 
-    });
+    // 2. Get the user's custom categories from the database
+    const userCategories = await IncomeExpense.distinct('category', { user: req.user._id });
     
-    // Combine, de-duplicate, and sort the lists
+    // 3. Combine, de-duplicate, and sort the lists
     const combinedCategories = [...new Set([...defaultCategories, ...userCategories])];
     combinedCategories.sort();
     
     res.json(combinedCategories);
   } catch (error) {
-    console.error('Error in getCategories:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
@@ -361,16 +238,13 @@ const deleteCategory = async (req, res) => {
 
   try {
     // Re-assign all transactions with this category to 'Miscellaneous'
-    const result = await IncomeExpense.updateMany(
-      { user: req.user._id, category: categoryToDelete, isDeleted: false },
+    await IncomeExpense.updateMany(
+      { user: req.user._id, category: categoryToDelete },
       { $set: { category: 'Miscellaneous' } }
     );
 
-    res.json({ 
-      message: `Category '${categoryToDelete}' deleted successfully. ${result.modifiedCount} transactions moved to 'Miscellaneous'.` 
-    });
+    res.json({ message: `Category '${categoryToDelete}' deleted successfully. Associated transactions moved to 'Miscellaneous'.` });
   } catch (error) {
-    console.error('Error in deleteCategory:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
