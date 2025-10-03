@@ -32,6 +32,7 @@ const TransactionsPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [selectedTransactionIds, setSelectedTransactionIds] = useState([]);
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -90,6 +91,25 @@ const TransactionsPage = () => {
     }
   };
 
+  const toggleSelect = (id) => {
+    setSelectedTransactionIds(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+  
+  const handleBulkDelete = async () => {
+    if (!selectedTransactionIds.length) return;
+    if (window.confirm(`Delete ${selectedTransactionIds.length} transactions?`)) {
+      try {
+        await Promise.all(selectedTransactionIds.map(id => api.delete(`/transactions/${id}`)));
+        setSelectedTransactionIds([]);
+        fetchData();
+      } catch (error) {
+        console.error("Delete failed", error);
+      }
+    }
+  };
+
   const handleNewCategory = (newCategory) => {
     setCategories(prev => [...prev, newCategory].sort());
   };
@@ -110,6 +130,11 @@ const TransactionsPage = () => {
       <div className="flex flex-wrap gap-4 justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
         <div className="flex gap-4">
+          {selectedTransactionIds.length > 0 && 
+            <button onClick={handleBulkDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+              Delete ({selectedTransactionIds.length})
+            </button>
+          }
           <button onClick={() => setIsCategoryModalOpen(true)} className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
             Manage Categories
           </button>
@@ -133,6 +158,14 @@ const TransactionsPage = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-2 py-3">
+                  <input 
+                    type="checkbox" 
+                    className="w-4 h-4" 
+                    checked={selectedTransactionIds.length === transactions.length && transactions.length > 0} 
+                    onChange={() => setSelectedTransactionIds(selectedTransactionIds.length ? [] : transactions.map(t => t._id))} 
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
@@ -143,6 +176,14 @@ const TransactionsPage = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {transactions.map((tx) => (
                 <tr key={tx._id}>
+                  <td className="px-2 py-4 flex justify-center">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4" 
+                      checked={selectedTransactionIds.includes(tx._id)} 
+                      onChange={() => toggleSelect(tx._id)} 
+                    />
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">{tx.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{tx.category}</td>
                   <td className={`px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}`}>
