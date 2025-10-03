@@ -6,6 +6,26 @@ import ManageCategoriesModal from '../components/ManageCategoriesModal';
 import Spinner from '../components/Spinner';
 import useCurrency from '../hooks/useCurrency';
 
+const handleExportCSV = async () => {
+  try {
+    const res = await api.get('/transactions/export', {
+      responseType: 'blob', // Important for file download
+    });
+    const blob = new Blob([res.data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'paisable_transactions.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Failed to export CSV", error);
+    alert("Failed to export CSV. Please try again.");
+  }
+};
+
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,27 +37,7 @@ const TransactionsPage = () => {
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const { currency } = useCurrency();
-
-  const handleExportCSV = async () => {
-    try {
-      const response = await api.get('/transactions/export', {
-        responseType: 'blob',
-      });
-      const blob = new Blob([response.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const downloadLink = document.createElement('a');
-      downloadLink.href = url;
-      downloadLink.download = 'paisable_transactions.csv';
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      downloadLink.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Failed to export CSV:', error);
-      alert('Failed to export CSV. Please try again.');
-    }
-  };
+  const { currency } = useCurrency(); 
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -275,4 +275,4 @@ const TransactionsPage = () => {
   );
 };
 
-export default TransactionsPage;
+export {TransactionsPage,handleExportCSV};
