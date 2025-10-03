@@ -6,6 +6,10 @@ import TransactionModal from '../components/TransactionModal';
 import useCurrency from '../hooks/useCurrency';
 import useTheme from '../hooks/useTheme';
 import Spinner from '../components/Spinner';
+import EmptyState from '../components/EmptyState';
+import { IoIosWarning } from "react-icons/io";
+
+
 
 // A reusable card component for the dashboard summary
 const SummaryCard = ({ title, value, bgColor, loading }) => {
@@ -118,7 +122,7 @@ const DashboardPage = () => {
           {loading ? <Spinner /> : chartData?.expensesByCategory.length > 0 ? (
     <CategoryPieChart data={chartData.expensesByCategory} theme={theme} />
   ) : (
-    <div className="h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded"><p className="text-gray-500 dark:text-gray-400">No expense data to display.</p></div>
+       <EmptyState message="No expense data to display." icon={<IoIosWarning className="w-6 h-6 text-yellow-500" />}/>
   )}
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
@@ -131,7 +135,7 @@ const DashboardPage = () => {
                 theme={theme} 
               />
             ) : (
-              <div className="h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded"><p className="text-gray-500 dark:text-gray-400">No recent activity to display.</p></div>
+              <EmptyState message="No recent activity to display."/>
             )}
           </div>
           
