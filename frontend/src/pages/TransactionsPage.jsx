@@ -242,7 +242,8 @@ const TransactionsPage = () => {
                   </td>
                 </tr>
               ))}
-            </select>
+            </tbody>
+            </table>
           </div>
 
           {/* Start Date Filter */}
