@@ -37,13 +37,48 @@ const TransactionsPage = () => {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const { currency } = useCurrency();
 
-  const fetchData = useCallback(async () => {
+  // Filter states
+  const [filters, setFilters] = useState({
+    isIncome: '', 
+    category: '',
+    startDate: '',
+    endDate: ''
+  });
+  
+  // Debounce timer for filter changes
+  const [debounceTimer, setDebounceTimer] = useState(null);
+
+  const fetchData = useCallback(async (currentPage = page, currentFilters = filters) => {
     setLoading(true);
     try {
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '10'
+      });
+
+      // Add filter parameters if they exist
+      if (currentFilters.isIncome !== '') {
+        params.append('isIncome', currentFilters.isIncome);
+      }
+      
+      if (currentFilters.category) {
+        params.append('category', currentFilters.category);
+      }
+      
+      if (currentFilters.startDate) {
+        params.append('startDate', currentFilters.startDate);
+      }
+      
+      if (currentFilters.endDate) {
+        params.append('endDate', currentFilters.endDate);
+      }
+
       const [transactionsRes, categoriesRes] = await Promise.all([
-        api.get(`/transactions?page=${page}&limit=10`),
+        api.get(`/transactions?${params.toString()}`),
         api.get('/transactions/categories')
       ]);
+      
       setTransactions(transactionsRes.data.transactions);
       setTotalPages(transactionsRes.data.totalPages);
       setCategories(categoriesRes.data);
@@ -52,11 +87,57 @@ const TransactionsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, filters]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Handle filter changes with debouncing
+  const handleFilterChange = (filterName, value) => {
+    const newFilters = { ...filters, [filterName]: value };
+    setFilters(newFilters);
+
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    
+    const timer = setTimeout(() => {
+      setPage(1); 
+      fetchData(1, newFilters);
+    }, 300); 
+
+    setDebounceTimer(timer);
+  };
+
+  
+  const clearFilters = () => {
+    const clearedFilters = {
+      isIncome: '',
+      category: '',
+      startDate: '',
+      endDate: ''
+    };
+    setFilters(clearedFilters);
+    setPage(1);
+    fetchData(1, clearedFilters);
+  };
+
+  // Handle pagination
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    fetchData(newPage, filters);
+  };
+
+  
+  useEffect(() => {
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [debounceTimer]);
 
   const handleOpenTransactionModal = (transaction = null) => {
     setEditingTransaction(transaction);
@@ -72,7 +153,7 @@ const TransactionsPage = () => {
     try {
       if (id) await api.put(`/transactions/${id}`, formData);
       else await api.post('/transactions', formData);
-      fetchData();
+      fetchData(); 
       handleCloseTransactionModal();
     } catch (error) {
       console.error("Failed to save transaction", error);
@@ -83,7 +164,7 @@ const TransactionsPage = () => {
     if (window.confirm("Are you sure you want to delete this transaction?")) {
       try {
         await api.delete(`/transactions/${id}`);
-        fetchData();
+        fetchData(); 
       } catch (error) {
         console.error("Failed to delete transaction", error);
       }
@@ -104,6 +185,9 @@ const TransactionsPage = () => {
       }
     }
   };
+
+  // Check if any filters are active
+  const hasActiveFilters = filters.isIncome !== '' || filters.category !== '' || filters.startDate !== '' || filters.endDate !== '';
 
   return (
     <>
@@ -158,8 +242,76 @@ const TransactionsPage = () => {
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
+            </select>
+          </div>
+
+          {/* Start Date Filter */}
+          <div>
+            <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-1">
+              Start Date
+            </label>
+            <input
+              type="date"
+              id="start-date"
+              value={filters.startDate}
+              onChange={(e) => handleFilterChange('startDate', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* End Date Filter */}
+          <div>
+            <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 mb-1">
+              End Date
+            </label>
+            <input
+              type="date"
+              id="end-date"
+              value={filters.endDate}
+              onChange={(e) => handleFilterChange('endDate', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Filter Actions and Summary */}
+        <div className="flex flex-wrap justify-between items-center">
+          <div className="text-sm text-gray-600">
+            {hasActiveFilters && (
+              <>
+                Filtered results
+                {filters.isIncome !== '' && (
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {filters.isIncome === 'true' ? 'Income' : 'Expenses'}
+                  </span>
+                )}
+                {filters.category && (
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {filters.category}
+                  </span>
+                )}
+                {filters.startDate && (
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    From: {new Date(filters.startDate).toLocaleDateString()}
+                  </span>
+                )}
+                {filters.endDate && (
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    To: {new Date(filters.endDate).toLocaleDateString()}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+          
+          {hasActiveFilters && (
+            <button 
+              onClick={clearFilters}
+              className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors duration-200"
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
       )}
 

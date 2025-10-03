@@ -14,11 +14,13 @@ const {
 } = require('../controllers/transactionController');
 
 const { protect } = require('../middleware/authMiddleware');
+
 // Route for getting all and adding a new transaction
 router.route('/')
   .get(protect, getTransactions)
   .post(protect, addTransaction);
 
+// Specific routes (order matters - more specific routes first)
 router.route('/summary').get(protect, getTransactionSummary);
 router.route('/charts').get(protect, getChartData);
 router.route('/categories').get(protect, getCategories);
