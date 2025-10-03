@@ -8,8 +8,8 @@ import ReceiptsPage from "./pages/ReceiptsPage";
 import WelcomePage from "./pages/WelcomePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
-import SettingsPage from "./pages/SettingsPage";
 import Budgets from "./pages/Budgets";
+import SettingsPage from "./pages/SettingsPage";
 
 function App() {
   return (
