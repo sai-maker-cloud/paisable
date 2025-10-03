@@ -154,14 +154,14 @@ const TransactionsPage = () => {
       {loading ? (
         <Spinner />
       ) : (
-        <div className="bg-white shadow rounded-lg overflow-x-auto">
+        <div className="bg-white shadow rounded-lg overflow-x-auto hover:shadow-lg transition-shadow duration-300">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-2 py-3">
                   <input 
                     type="checkbox" 
-                    className="w-4 h-4" 
+                    className="w-4 h-4 rounded focus:ring-2 focus:ring-blue-600 hover:ring-4 hover:ring-blue-200 transition-all duration-200 cursor-pointer" 
                     checked={selectedTransactionIds.length === transactions.length && transactions.length > 0} 
                     onChange={() => setSelectedTransactionIds(selectedTransactionIds.length ? [] : transactions.map(t => t._id))} 
                   />
@@ -175,11 +175,11 @@ const TransactionsPage = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {transactions.map((tx) => (
-                <tr key={tx._id}>
-                  <td className="px-2 py-4 flex justify-center">
+                <tr key={tx._id} className="hover:shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-shadow duration-200">
+                  <td className="px-2 py-6 flex justify-center">
                     <input 
                       type="checkbox" 
-                      className="w-4 h-4" 
+                      className="w-4 h-4 rounded focus:ring-2 focus:ring-blue-600 hover:ring-4 hover:ring-blue-200 transition-all duration-200 cursor-pointer" 
                       checked={selectedTransactionIds.includes(tx._id)} 
                       onChange={() => toggleSelect(tx._id)} 
                     />
