@@ -35,6 +35,8 @@ const TransactionsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [debounceTimer, setDebounceTimer] = useState(null);
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
@@ -58,6 +60,12 @@ const TransactionsPage = () => {
       if (categoryFilter !== 'all') {
         params.append('category', categoryFilter);
       }
+      if (dateFrom) {
+        params.append('startDate', dateFrom);
+      }
+      if (dateTo) {
+        params.append('endDate', dateTo);
+      }
 
       const [transactionsRes, categoriesRes] = await Promise.all([
         api.get(`/transactions?${params.toString()}`),
@@ -71,7 +79,7 @@ const TransactionsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, searchTerm, typeFilter, categoryFilter]);
+  }, [page, searchTerm, typeFilter, categoryFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchData();
@@ -225,6 +233,43 @@ const TransactionsPage = () => {
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        {/* Date Range Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Start Date */}
+          <div>
+            <label htmlFor="date-from" className="block text-sm font-medium text-gray-700 mb-1">
+              Start Date
+            </label>
+            <input
+              type="date"
+              id="date-from"
+              value={dateFrom}
+              onChange={(e) => {
+                setDateFrom(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* End Date */}
+          <div>
+            <label htmlFor="date-to" className="block text-sm font-medium text-gray-700 mb-1">
+              End Date
+            </label>
+            <input
+              type="date"
+              id="date-to"
+              value={dateTo}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
         </div>
       </div>
