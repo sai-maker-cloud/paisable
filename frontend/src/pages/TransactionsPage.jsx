@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../api/axios';
 import TransactionModal from '../components/TransactionModal';
 import ManageCategoriesModal from '../components/ManageCategoriesModal';
@@ -194,8 +195,22 @@ const TransactionsPage = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">{new Date(tx.addedOn).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onClick={() => handleOpenTransactionModal(tx)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
-                    <button onClick={() => handleDeleteTransaction(tx._id)} className="text-red-600 hover:text-red-900">Delete</button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button 
+                        onClick={() => handleOpenTransactionModal(tx)} 
+                        className="text-indigo-600 hover:text-indigo-900 p-2 rounded-full hover:bg-indigo-50 transition-all duration-200"
+                        title="Edit transaction"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteTransaction(tx._id)} 
+                        className="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-50 transition-all duration-200"
+                        title="Delete transaction"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -204,13 +219,29 @@ const TransactionsPage = () => {
         </div>
       )}
 
-      <div className="flex justify-between items-center mt-4">
-        <button onClick={() => setPage(p => Math.max(p - 1, 1))} disabled={page === 1} className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
-          Previous
+      <div className="flex justify-between items-center mt-6">
+        <button 
+          onClick={() => setPage(p => Math.max(p - 1, 1))} 
+          disabled={page === 1} 
+          className="flex items-center justify-center w-10 h-10 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm"
+          title="Previous page"
+        >
+          <ChevronLeft size={20} />
         </button>
-        <span>Page {page} of {totalPages}</span>
-        <button onClick={() => setPage(p => Math.min(p + 1, totalPages))} disabled={page === totalPages} className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
-          Next
+        
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Page</span>
+          <span className="px-3 py-1 bg-blue-600 text-white rounded-lg font-medium">{page}</span>
+          <span className="text-sm text-gray-600">of {totalPages}</span>
+        </div>
+        
+        <button 
+          onClick={() => setPage(p => Math.min(p + 1, totalPages))} 
+          disabled={page === totalPages} 
+          className="flex items-center justify-center w-10 h-10 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm"
+          title="Next page"
+        >
+          <ChevronRight size={20} />
         </button>
       </div>
 
