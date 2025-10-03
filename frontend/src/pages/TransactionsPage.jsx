@@ -188,7 +188,7 @@ const TransactionsPage = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {transactions.map((tx) => (
                 <tr key={tx._id} className="hover:shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-shadow duration-200">
-                  <td className="px-2 py-6 flex justify-center">
+                  <td className="px-2 py-6 text-center">
                     <input 
                       type="checkbox" 
                       className="w-4 h-4 rounded focus:ring-2 focus:ring-blue-600 hover:ring-4 hover:ring-blue-200 transition-all duration-200 cursor-pointer" 
