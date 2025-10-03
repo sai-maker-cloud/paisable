@@ -11,12 +11,7 @@ jobs:
       pull-requests: write  # ✅ allow labeling
     steps:
 
-      - name: Label PR for Hacktoberfest
-        uses: actions-ecosystem/action-add-labels@b7e1e703c1e2e2c2e2c1e2e2c2e2c1e2e2c2e2c1
+      - name: Label PR based on files changed
+        uses: actions/labeler@v5
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          labels: |
-            good first issue
-            hacktoberfest
-            hacktoberfest2025
-            hacktoberfest-accepted
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
