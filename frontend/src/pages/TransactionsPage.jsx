@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../api/axios';
 import TransactionModal from '../components/TransactionModal';
 import ManageCategoriesModal from '../components/ManageCategoriesModal';
@@ -28,6 +28,7 @@ const handleExportCSV = async () => {
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFiltering, setIsFiltering] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [editingTransaction, setEditingTransaction] = useState(null);
@@ -42,9 +43,15 @@ const TransactionsPage = () => {
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const { currency } = useCurrency();
+  const isInitialMount = useRef(true);
 
   const fetchData = useCallback(async (search = searchTerm) => {
-    setLoading(true);
+    if (isInitialMount.current) {
+      setLoading(true);
+    } else {
+      setIsFiltering(true);
+    }
+
     try {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -78,6 +85,8 @@ const TransactionsPage = () => {
       console.error("Failed to fetch transactions data", error);
     } finally {
       setLoading(false);
+      setIsFiltering(false);
+      isInitialMount.current = false;
     }
   }, [page, searchTerm, typeFilter, categoryFilter, dateFrom, dateTo]);
 
@@ -240,32 +249,36 @@ const TransactionsPage = () => {
           </div>
 
           {/* Start Date */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500 pointer-events-none">
+              From:
+            </div>
             <input
               type="date"
               id="date-from"
-              placeholder="Start Date"
               value={dateFrom}
               onChange={(e) => {
                 setDateFrom(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-14 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
           {/* End Date */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500 pointer-events-none">
+              To:
+            </div>
             <input
               type="date"
               id="date-to"
-              placeholder="End Date"
               value={dateTo}
               onChange={(e) => {
                 setDateTo(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
@@ -314,7 +327,7 @@ const TransactionsPage = () => {
       {loading ? (
         <Spinner />
       ) : (
-        <div className="bg-white shadow rounded-lg overflow-x-auto">
+        <div className={`bg-white shadow rounded-lg overflow-x-auto transition-opacity duration-200 ${isFiltering ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
