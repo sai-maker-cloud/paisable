@@ -5,6 +5,26 @@ import ManageCategoriesModal from '../components/ManageCategoriesModal';
 import Spinner from '../components/Spinner';
 import useCurrency from '../hooks/useCurrency';
 
+const handleExportCSV = async () => {
+  try {
+    const res = await api.get('/transactions/export', {
+      responseType: 'blob', // Important for file download
+    });
+    const blob = new Blob([res.data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'paisable_transactions.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Failed to export CSV", error);
+    alert("Failed to export CSV. Please try again.");
+  }
+};
+
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,7 +32,7 @@ const TransactionsPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [categories, setCategories] = useState([]);
-  
+
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const { currency } = useCurrency();
@@ -128,7 +148,7 @@ const TransactionsPage = () => {
     setIsTransactionModalOpen(false);
     setEditingTransaction(null);
   };
-  
+
   const handleFormSubmit = async (formData, id) => {
     try {
       if (id) await api.put(`/transactions/${id}`, formData);
@@ -150,7 +170,7 @@ const TransactionsPage = () => {
       }
     }
   };
-  
+
   const handleNewCategory = (newCategory) => {
     setCategories(prev => [...prev, newCategory].sort());
   };
@@ -159,7 +179,7 @@ const TransactionsPage = () => {
     if (window.confirm(`Are you sure you want to delete the category "${categoryToDelete}"? All associated transactions will be moved to "Miscellaneous".`)) {
       try {
         await api.delete('/transactions/category', { data: { categoryToDelete } });
-        fetchData(); 
+        fetchData();
       } catch (error) {
         console.error("Failed to delete category", error);
       }
@@ -180,45 +200,47 @@ const TransactionsPage = () => {
           <button onClick={() => handleOpenTransactionModal()} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             Add Transaction
           </button>
+          <button
+            onClick={handleExportCSV}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            title="Export all transactions to CSV"
+          >
+            Export to CSV
+          </button>
         </div>
       </div>
 
-      {/* Filter Controls */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Filter Transactions</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          
-          <div>
-            <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 mb-1">
-              Transaction Type
-            </label>
-            <select
-              id="type-filter"
-              value={filters.isIncome}
-              onChange={(e) => handleFilterChange('isIncome', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Transactions</option>
-              <option value="true">Income Only</option>
-              <option value="false">Expenses Only</option>
-            </select>
-          </div>
-
-          {/* Category Filter */}
-          <div>
-            <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">
-              Category
-            </label>
-            <select
-              id="category-filter"
-              value={filters.category}
-              onChange={(e) => handleFilterChange('category', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Categories</option>
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
+      {loading ? (
+        <Spinner />
+      ) : (
+        <div className="bg-white shadow rounded-lg overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {transactions.map((tx) => (
+                <tr key={tx._id}>
+                  <td className="px-6 py-4 whitespace-nowrap">{tx.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{tx.category}</td>
+                  <td className={`px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}`}>
+                    {tx.isIncome ? '+' : '-'}{new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: currency.code,
+                    }).format(tx.cost)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">{new Date(tx.addedOn).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button onClick={() => handleOpenTransactionModal(tx)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
+                    <button onClick={() => handleDeleteTransaction(tx._id)} className="text-red-600 hover:text-red-900">Delete</button>
+                  </td>
+                </tr>
               ))}
             </select>
           </div>
@@ -291,132 +313,19 @@ const TransactionsPage = () => {
             </button>
           )}
         </div>
-      </div>
-
-      {loading ? (
-        <Spinner />
-      ) : (
-        <>
-          <div className="bg-white shadow rounded-lg overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {transactions.length > 0 ? (
-                  transactions.map((tx) => (
-                    <tr key={tx._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">{tx.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          {tx.category}
-                        </span>
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}`}>
-                        {tx.isIncome ? '+' : '-'}{new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: currency.code,
-                        }).format(tx.cost)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                        {new Date(tx.addedOn).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button 
-                          onClick={() => handleOpenTransactionModal(tx)} 
-                          className="text-indigo-600 hover:text-indigo-900 mr-4 transition-colors duration-200"
-                        >
-                          Edit
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteTransaction(tx._id)} 
-                          className="text-red-600 hover:text-red-900 transition-colors duration-200"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center">
-                      <div className="text-gray-500">
-                        <p className="text-lg mb-2">No transactions found</p>
-                        <p className="text-sm">
-                          {hasActiveFilters 
-                            ? "Try adjusting your filters or " 
-                            : "Get started by "
-                          }
-                          <button 
-                            onClick={hasActiveFilters ? clearFilters : () => handleOpenTransactionModal()} 
-                            className="text-blue-600 hover:text-blue-800 underline"
-                          >
-                            {hasActiveFilters ? "clearing filters" : "adding a transaction"}
-                          </button>
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-6">
-              <button 
-                onClick={() => handlePageChange(Math.max(page - 1, 1))} 
-                disabled={page === 1} 
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition-colors duration-200"
-              >
-                Previous
-              </button>
-              
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-700">
-                  Page {page} of {totalPages}
-                </span>
-                
-                {/* Page number indicators for smaller page counts */}
-                {totalPages <= 7 && (
-                  <div className="flex space-x-1 ml-4">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-                      <button
-                        key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        className={`w-8 h-8 text-sm rounded ${
-                          page === pageNum 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        } transition-colors duration-200`}
-                      >
-                        {pageNum}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              <button 
-                onClick={() => handlePageChange(Math.min(page + 1, totalPages))} 
-                disabled={page === totalPages} 
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition-colors duration-200"
-              >
-                Next
-              </button>
-            </div>
-          )}
-        </>
       )}
 
-      <TransactionModal 
+      <div className="flex justify-between items-center mt-4">
+        <button onClick={() => setPage(p => Math.max(p - 1, 1))} disabled={page === 1} className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
+          Previous
+        </button>
+        <span>Page {page} of {totalPages}</span>
+        <button onClick={() => setPage(p => Math.min(p + 1, totalPages))} disabled={page === totalPages} className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
+          Next
+        </button>
+      </div>
+
+      <TransactionModal
         isOpen={isTransactionModalOpen}
         onClose={handleCloseTransactionModal}
         onSubmit={handleFormSubmit}
@@ -424,8 +333,8 @@ const TransactionsPage = () => {
         categories={categories}
         onNewCategory={handleNewCategory}
       />
-      
-      <ManageCategoriesModal 
+
+      <ManageCategoriesModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
         allCategories={categories}
@@ -435,4 +344,4 @@ const TransactionsPage = () => {
   );
 };
 
-export default TransactionsPage;
+export {TransactionsPage,handleExportCSV};

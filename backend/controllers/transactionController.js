@@ -1,5 +1,5 @@
 const IncomeExpense = require('../models/IncomeExpense');
-
+const Papa = require('papaparse');
 // @desc    Add a new transaction
 // @route   POST /api/transactions
 // @access  Private
@@ -375,111 +375,31 @@ const deleteCategory = async (req, res) => {
   }
 };
 
-// @desc    Get transaction statistics with filtering support
-// @route   GET /api/transactions/stats
-// @access  Private
-const getTransactionStats = async (req, res) => {
+const exportTransactions = async (req, res) => {
   try {
-    const { isIncome, category, startDate, endDate } = req.query;
-    
-    // Build filter object
-    const filter = { user: req.user._id, isDeleted: false };
-    
-    // Add filters
-    if (isIncome !== undefined && isIncome !== '') {
-      filter.isIncome = isIncome === 'true';
-    }
-    
-    if (category && category !== '') {
-      filter.category = category;
-    }
-    
-    if (startDate || endDate) {
-      filter.addedOn = {};
-      if (startDate) {
-        const start = new Date(startDate);
-        if (!isNaN(start.getTime())) {
-          start.setHours(0, 0, 0, 0);
-          filter.addedOn.$gte = start;
-        }
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        if (!isNaN(end.getTime())) {
-          end.setHours(23, 59, 59, 999);
-          filter.addedOn.$lte = end;
-        }
-      }
-    }
+    const transactions = await IncomeExpense.find({ user: req.user._id, isDeleted: false }).lean();
 
-    // Aggregate statistics
-    const stats = await IncomeExpense.aggregate([
-      { $match: filter },
-      {
-        $group: {
-          _id: null,
-          totalTransactions: { $sum: 1 },
-          totalIncome: {
-            $sum: {
-              $cond: [{ $eq: ['$isIncome', true] }, '$cost', 0]
-            }
-          },
-          totalExpenses: {
-            $sum: {
-              $cond: [{ $eq: ['$isIncome', false] }, '$cost', 0]
-            }
-          },
-          incomeCount: {
-            $sum: {
-              $cond: [{ $eq: ['$isIncome', true] }, 1, 0]
-            }
-          },
-          expenseCount: {
-            $sum: {
-              $cond: [{ $eq: ['$isIncome', false] }, 1, 0]
-            }
-          },
-          averageTransaction: { $avg: '$cost' },
-          maxTransaction: { $max: '$cost' },
-          minTransaction: { $min: '$cost' }
-        }
-      }
-    ]);
+    const csvData = transactions.map(({ _id, user, name, category, cost, addedOn, isIncome }) => ({
+      id: _id,
+      user,
+      name,
+      category,
+      cost,
+      addedOn,
+      isIncome,
+    }));
 
-    const result = stats[0] || {
-      totalTransactions: 0,
-      totalIncome: 0,
-      totalExpenses: 0,
-      incomeCount: 0,
-      expenseCount: 0,
-      averageTransaction: 0,
-      maxTransaction: 0,
-      minTransaction: 0
-    };
+    // Use Papa.unparse directly
+    const csv = Papa.unparse(csvData, { header: true });
 
-    // Calculate additional metrics
-    result.netIncome = result.totalIncome - result.totalExpenses;
-    result.savingsRate = result.totalIncome > 0 ? ((result.netIncome / result.totalIncome) * 100) : 0;
-
-    res.json({
-      success: true,
-      stats: result,
-      period: {
-        startDate: startDate || null,
-        endDate: endDate || null,
-        hasDateFilter: !!(startDate || endDate)
-      }
-    });
-
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="paisable_transactions.csv"');
+    res.status(200).send(csv);
   } catch (error) {
-    console.error('Error in getTransactionStats:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Server Error', 
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
+    res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
+
 
 module.exports = {
   addTransaction,
@@ -490,5 +410,5 @@ module.exports = {
   getChartData,
   getCategories,
   deleteCategory,
-  getTransactionStats, 
+  exportTransactions,
 };
