@@ -12,7 +12,7 @@ jobs:
     steps:
 
       - name: Label PR for Hacktoberfest
-        uses: actions-ecosystem/action-add-labels@v1
+        uses: actions-ecosystem/action-add-labels@b7e1e703c1e2e2c2e2c1e2e2c2e2c1e2e2c2e2c1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: |
