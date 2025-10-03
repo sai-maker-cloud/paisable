@@ -1,4 +1,6 @@
-export default function EmptyState({ message, icon }) {
+export default function EmptyState({ message , icon }) {
+  // messsage : pass through as props to be displayed as text
+  // icon : pass through icon details and styles as a props 
   return (
     <div className="flex justify-center items-center w-full h-full">
       <div className="relative max-w-sm w-full">
