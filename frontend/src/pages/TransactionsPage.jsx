@@ -33,6 +33,8 @@ const TransactionsPage = () => {
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [debounceTimer, setDebounceTimer] = useState(null);
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
@@ -50,6 +52,12 @@ const TransactionsPage = () => {
       if (search) {
         params.append('search', search);
       }
+      if (typeFilter !== 'all') {
+        params.append('isIncome', typeFilter === 'income' ? 'true' : 'false');
+      }
+      if (categoryFilter !== 'all') {
+        params.append('category', categoryFilter);
+      }
 
       const [transactionsRes, categoriesRes] = await Promise.all([
         api.get(`/transactions?${params.toString()}`),
@@ -63,7 +71,7 @@ const TransactionsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, searchTerm]);
+  }, [page, searchTerm, typeFilter, categoryFilter]);
 
   useEffect(() => {
     fetchData();
@@ -161,15 +169,64 @@ const TransactionsPage = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search transactions by name..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
+      {/* Search and Filters */}
+      <div className="mb-4 space-y-4">
+        {/* Search Bar */}
+        <div>
+          <input
+            type="text"
+            placeholder="Search transactions by name..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        {/* Type and Category Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Type Filter */}
+          <div>
+            <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              Type
+            </label>
+            <select
+              id="type-filter"
+              value={typeFilter}
+              onChange={(e) => {
+                setTypeFilter(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All Transactions</option>
+              <option value="income">Income Only</option>
+              <option value="expense">Expense Only</option>
+            </select>
+          </div>
+
+          {/* Category Filter */}
+          <div>
+            <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
+            <select
+              id="category-filter"
+              value={categoryFilter}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {loading ? (
