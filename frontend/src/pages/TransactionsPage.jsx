@@ -109,6 +109,17 @@ const TransactionsPage = () => {
     setDebounceTimer(timer);
   };
 
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setTypeFilter('all');
+    setCategoryFilter('all');
+    setDateFrom('');
+    setDateTo('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = searchTerm || typeFilter !== 'all' || categoryFilter !== 'all' || dateFrom || dateTo;
+
   const handleOpenTransactionModal = (transaction = null) => {
     setEditingTransaction(transaction);
     setIsTransactionModalOpen(true);
@@ -272,6 +283,46 @@ const TransactionsPage = () => {
             />
           </div>
         </div>
+
+        {/* Active Filters and Clear Button */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap justify-between items-center gap-4 pt-4 border-t border-gray-200">
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm font-medium text-gray-700">Active Filters:</span>
+              {searchTerm && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  Search: "{searchTerm}"
+                </span>
+              )}
+              {typeFilter !== 'all' && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  {typeFilter === 'income' ? 'Income' : 'Expense'}
+                </span>
+              )}
+              {categoryFilter !== 'all' && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  Category: {categoryFilter}
+                </span>
+              )}
+              {dateFrom && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                  From: {new Date(dateFrom).toLocaleDateString()}
+                </span>
+              )}
+              {dateTo && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                  To: {new Date(dateTo).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={clearAllFilters}
+              className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors duration-200"
+            >
+              Clear All Filters
+            </button>
+          </div>
+        )}
       </div>
 
       {loading ? (
