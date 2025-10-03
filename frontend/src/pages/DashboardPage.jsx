@@ -72,8 +72,21 @@ const DashboardPage = () => {
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleFormSubmit = async (formData) => {
+    if (!formData.name || formData.name.trim() === "") {
+      alert("Please enter a name for the transaction");
+      return;
+    }
+    if (!formData.cost || isNaN(formData.cost) || Number(formData.cost) <= 0) {
+      alert("Please enter a valid cost greater than 0");
+      return;
+    }
+    if (!formData.category || formData.category.trim() === "") {
+      alert("Please select a category");
+      return;
+    }
+
     try {
-      await api.post('/transactions', formData);
+      await api.post("/transactions", formData);
       fetchData();
       handleCloseModal();
     } catch (error) {
