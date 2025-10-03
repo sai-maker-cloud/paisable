@@ -32,16 +32,27 @@ const TransactionsPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debounceTimer, setDebounceTimer] = useState(null);
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const { currency } = useCurrency();
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (search = searchTerm) => {
     setLoading(true);
     try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '10'
+      });
+
+      if (search) {
+        params.append('search', search);
+      }
+
       const [transactionsRes, categoriesRes] = await Promise.all([
-        api.get(`/transactions?page=${page}&limit=10`),
+        api.get(`/transactions?${params.toString()}`),
         api.get('/transactions/categories')
       ]);
       setTransactions(transactionsRes.data.transactions);
@@ -52,11 +63,35 @@ const TransactionsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, searchTerm]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [debounceTimer]);
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    const timer = setTimeout(() => {
+      setPage(1);
+      fetchData(value);
+    }, 300);
+
+    setDebounceTimer(timer);
+  };
 
   const handleOpenTransactionModal = (transaction = null) => {
     setEditingTransaction(transaction);
@@ -124,6 +159,17 @@ const TransactionsPage = () => {
             Export to CSV
           </button>
         </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search transactions by name..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
       </div>
 
       {loading ? (
