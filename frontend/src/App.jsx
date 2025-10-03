@@ -10,6 +10,7 @@ import WelcomePage from './pages/WelcomePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import SetupProtectedRoute from './components/SetupProtectedRoute';
 import Layout from './components/Layout';
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/receipts" element={<ReceiptsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Route>
     </Routes>
   );
