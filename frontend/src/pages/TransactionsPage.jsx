@@ -192,4 +192,5 @@ const TransactionsPage = () => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export {TransactionsPage,handleExportCSV};
