@@ -1,185 +1,184 @@
-import React, { useEffect, useState } from "react";
-import api from "../api/axios";
+import React, { useEffect, useState, useCallback } from 'react';
+import api from '../api/axios';
+import RecurringTransactionModal from '../components/RecurringTransactionModal';
+import Spinner from '../components/Spinner';
+import EmptyState from '../components/EmptyState';
+import useCurrency from '../hooks/useCurrency';
 
 const RecurringTransactions = () => {
   const [recurring, setRecurring] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
 
-  const [form, setForm] = useState({
-    name: "",
-    category: "",
-    amount: "",
-    isIncome: false,
-    frequency: "monthly",
-    startDate: "",
-  });
-  const [editingId, setEditingId] = useState(null);
+  const { currency } = useCurrency();
 
-  useEffect(() => {
-    fetchRecurring();
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [recurringRes, categoriesRes] = await Promise.all([
+        api.get('/recurring'),
+        api.get('/transactions/categories'),
+      ]);
+      setRecurring(recurringRes.data || []);
+      setCategories(categoriesRes.data || []);
+    } catch (err) {
+      console.error('Failed to fetch recurring transactions', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const fetchRecurring = async () => {
-    try {
-      const { data } = await api.get("/recurring");
-      setRecurring(data || []);
-    } catch (err) {
-      console.error(err);
-    }
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleOpenModal = (transaction = null) => {
+    setEditingTransaction(transaction);
+    setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleCloseModal = () => {
+    setEditingTransaction(null);
+    setIsModalOpen(false);
+  };
+
+  const handleFormSubmit = async (formData, id) => {
     try {
-      if (editingId) {
-        await api.put(`http://localhost:5000/api/recurring/${editingId}`, form);
-        setEditingId(null);
+      if (id) {
+        await api.put(`/recurring/${id}`, formData);
       } else {
-        await api.post("http://localhost:5000/api/recurring/create", form);
+        await api.post('/recurring/create', formData);
       }
-      setForm({
-        name: "",
-        category: "",
-        amount: "",
-        isIncome: false,
-        frequency: "monthly",
-        startDate: "",
-      });
-      fetchRecurring();
+      fetchData();
+      handleCloseModal();
     } catch (err) {
-      console.error(err);
+      console.error('Failed to save recurring transaction', err);
     }
-  };
-
-  const handleEdit = (item) => {
-    setForm({
-      name: item.name,
-      category: item.category,
-      amount: item.amount,
-      isIncome: item.isIncome,
-      frequency: item.frequency,
-      startDate: item.startDate.slice(0, 10),
-    });
-    setEditingId(item._id);
   };
 
   const handleDelete = async (id) => {
-    try {
-      await api.delete(`/recurring/${id}`);
-      fetchRecurring();
-    } catch (err) {
-      console.error(err);
+    if (
+      window.confirm(
+        'Are you sure you want to delete this recurring transaction?'
+      )
+    ) {
+      try {
+        await api.delete(`/recurring/${id}`);
+        fetchData();
+      } catch (err) {
+        console.error('Failed to delete recurring transaction', err);
+      }
     }
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Recurring Transactions</h2>
-
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-6 grid grid-cols-1 md:grid-cols-3 gap-4"
-      >
-        <input
-          type="text"
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="p-2 border rounded w-full"
-          required
-        />
-        <input
-          type="text"
-          placeholder="Category"
-          value={form.category}
-          onChange={(e) => setForm({ ...form, category: e.target.value })}
-          className="p-2 border rounded w-full"
-          required
-        />
-        <input
-          type="number"
-          placeholder="Amount"
-          value={form.amount}
-          onChange={(e) => setForm({ ...form, amount: e.target.value })}
-          className="p-2 border rounded w-full"
-          required
-        />
-        <select
-          value={form.frequency}
-          onChange={(e) => setForm({ ...form, frequency: e.target.value })}
-          className="p-2 border rounded w-full"
-        >
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="annually">Annually</option>
-        </select>
-        <input
-          type="date"
-          value={form.startDate}
-          onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-          className="p-2 border rounded w-full"
-          required
-        />
-        <label className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={form.isIncome}
-            onChange={(e) => setForm({ ...form, isIncome: e.target.checked })}
-          />
-          <span>Income</span>
-        </label>
+    <>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">
+          Recurring Transactions
+        </h1>
         <button
-          type="submit"
-          className="col-span-1 md:col-span-3 bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          onClick={() => handleOpenModal()}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
-          {editingId ? "Update" : "Add"}
+          Add Recurring
         </button>
-      </form>
-
-      <div className="overflow-x-auto">
-        <table className="w-full bg-white dark:bg-gray-800 rounded-lg shadow">
-          <thead className="bg-gray-100 dark:bg-gray-700">
-            <tr>
-              <th className="p-2 text-left">Name</th>
-              <th className="p-2 text-left">Category</th>
-              <th className="p-2 text-left">Amount</th>
-              <th className="p-2 text-left">Type</th>
-              <th className="p-2 text-left">Frequency</th>
-              <th className="p-2 text-left">Next Due</th>
-              <th className="p-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recurring?.map((r) => (
-              <tr key={r._id} className="border-t">
-                <td className="p-2">{r.name}</td>
-                <td className="p-2">{r.category}</td>
-                <td className="p-2">{r.amount}</td>
-                <td className="p-2">{r.isIncome ? "Income" : "Expense"}</td>
-                <td className="p-2">{r.frequency}</td>
-                <td className="p-2">
-                  {new Date(r.nextDueDate).toLocaleDateString()}
-                </td>
-                <td className="p-2 space-x-2">
-                  <button
-                    onClick={() => handleEdit(r)}
-                    className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(r._id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
-    </div>
+
+      {loading ? (
+        <Spinner />
+      ) : (
+        <div className="bg-white shadow rounded-lg overflow-x-auto">
+          {recurring.length > 0 ? (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Frequency
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Next Due
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {recurring.map((r) => (
+                  <tr key={r._id}>
+                    <td className="px-6 py-4 whitespace-nowrap">{r.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {r.category}
+                    </td>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap font-semibold ${
+                        r.isIncome ? 'text-green-600' : 'text-red-600'
+                      }`}
+                    >
+                      {r.isIncome ? '+' : '-'}
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: currency.code,
+                      }).format(r.amount)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {r.isIncome ? 'Income' : 'Expense'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {r.frequency}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {new Date(r.nextDueDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => handleOpenModal(r)}
+                        className="text-indigo-600 hover:text-indigo-900 mr-4"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(r._id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="p-6">
+              <EmptyState message="No recurring transactions" />
+            </div>
+          )}
+        </div>
+      )}
+
+      <RecurringTransactionModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleFormSubmit}
+        transaction={editingTransaction}
+        categories={categories}
+      />
+    </>
   );
 };
 
