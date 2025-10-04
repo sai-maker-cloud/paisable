@@ -39,7 +39,7 @@ const TransactionsPage = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [debounceTimer, setDebounceTimer] = useState(null);
+  const debounceTimer = useRef(null); // Changed to useRef
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -74,14 +74,11 @@ const TransactionsPage = () => {
       if (dateTo) {
         params.append('endDate', dateTo);
       }
-
-      const [transactionsRes, categoriesRes] = await Promise.all([
-        api.get(`/transactions?${params.toString()}`),
-        api.get('/transactions/categories')
-      ]);
+      
+      const transactionsRes = await api.get(`/transactions?${params.toString()}`);
       setTransactions(transactionsRes.data.transactions);
       setTotalPages(transactionsRes.data.totalPages);
-      setCategories(categoriesRes.data);
+
     } catch (error) {
       console.error("Failed to fetch transactions data", error);
     } finally {
@@ -91,32 +88,36 @@ const TransactionsPage = () => {
     }
   }, [page, searchTerm, typeFilter, categoryFilter, dateFrom, dateTo]);
 
+  // Fetch categories only on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesRes = await api.get('/transactions/categories');
+        setCategories(categoriesRes.data);
+      } catch (error) {
+        console.error("Failed to fetch categories", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch transactions when fetchData changes
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
-      }
-    };
-  }, [debounceTimer]);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
 
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
     }
 
-    const timer = setTimeout(() => {
+    debounceTimer.current = setTimeout(() => {
       setPage(1);
       fetchData(value);
     }, 300);
-
-    setDebounceTimer(timer);
   };
 
   const clearAllFilters = () => {
@@ -328,7 +329,7 @@ const TransactionsPage = () => {
       {loading ? (
         <Spinner />
       ) : (
-        <div className={`bg-white shadow rounded-lg overflow-x-auto transition-opacity duration-200 ${isFiltering ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+        <div className={"bg-white shadow rounded-lg overflow-x-auto transition-opacity duration-200 ${isFiltering ? 'opacity-50 pointer-events-none' : 'opacity-100'}"}>
           {transactions.length > 0 ? (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -345,7 +346,7 @@ const TransactionsPage = () => {
                   <tr key={tx._id}>
                     <td className="px-6 py-4 whitespace-nowrap">{tx.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{tx.category}</td>
-                    <td className={`px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}`}>
+                    <td className={"px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}"}>
                       {tx.isIncome ? '+' : '-'}{new Intl.NumberFormat('en-US', {
                         style: 'currency',
                         currency: currency.code,
@@ -366,45 +367,6 @@ const TransactionsPage = () => {
             </div>
           )}
         </div>
-        <div className="bg-white shadow rounded-lg overflow-x-auto">
-  {transactions.length > 0 ? (
-    <table className="min-w-full divide-y divide-gray-200">
-      <thead className="bg-gray-50">
-        <tr>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-        </tr>
-      </thead>
-      <tbody className="bg-white divide-y divide-gray-200">
-        {transactions.map((tx) => (
-          <tr key={tx._id}>
-            <td className="px-6 py-4 whitespace-nowrap">{tx.name}</td>
-            <td className="px-6 py-4 whitespace-nowrap">{tx.category}</td>
-            <td className={`px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}`}>
-              {tx.isIncome ? '+' : '-'}{new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: currency.code,
-              }).format(tx.cost)}
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap">{new Date(tx.addedOn).toLocaleDateString()}</td>
-            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <button onClick={() => handleOpenTransactionModal(tx)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
-              <button onClick={() => handleDeleteTransaction(tx._id)} className="text-red-600 hover:text-red-900">Delete</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  ) : (
-    <div className="p-6">
-      <EmptyState message="No Transaction done" />
-    </div>
-  )}
-</div>
-
       )}
 
       <div className="flex justify-between items-center mt-4">
