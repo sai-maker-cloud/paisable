@@ -93,13 +93,23 @@ const RecurringTransactionModal = ({
             <option value="monthly">Monthly</option>
             <option value="annually">Annually</option>
           </select>
-          <input
-            type="date"
-            value={form.startDate}
-            onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-            className="p-2 border rounded w-full"
-            required
-          />
+          <div className="mb-4">
+            <label className="block text-gray-700 font-medium">
+              Start Date
+            </label>
+            <input
+              type="date"
+              value={form.startDate}
+              onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+            <p className="text-sm text-red-500 mt-1">
+              Next Due Date will be calculated automatically based on this start
+              date and frequency.
+            </p>
+          </div>
+
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
