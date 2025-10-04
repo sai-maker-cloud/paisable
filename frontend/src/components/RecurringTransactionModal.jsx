@@ -101,11 +101,8 @@ const RecurringTransactionModal = ({
               type="date"
               value={form.startDate}
               onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
               required
-              readOnly={!!transaction}
-              className={`w-full px-3 py-2 border rounded ${
-                transaction ? 'bg-gray-100 cursor-not-allowed' : ''
-              }`}
             />
             <p className="text-sm text-red-500 mt-1">
               Next Due Date will be calculated automatically based on this start
