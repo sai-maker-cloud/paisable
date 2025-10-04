@@ -346,7 +346,7 @@ const TransactionsPage = () => {
                   <tr key={tx._id}>
                     <td className="px-6 py-4 whitespace-nowrap">{tx.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{tx.category}</td>
-                    <td className={"px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}"}>
+                    <td className={`px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}`}>
                       {tx.isIncome ? '+' : '-'}{new Intl.NumberFormat('en-US', {
                         style: 'currency',
                         currency: currency.code,
