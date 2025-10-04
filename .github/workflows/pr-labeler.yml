@@ -1,0 +1,17 @@
+name: "PR Labeler for Hacktoberfest"
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  add-labels:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write  # ✅ allow labeling
+    steps:
+
+      - name: Label PR based on files changed
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
