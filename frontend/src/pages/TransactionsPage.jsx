@@ -1,19 +1,41 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../api/axios';
 import TransactionModal from '../components/TransactionModal';
 import TransactionDetailModal from '../components/TransactionDetailModal'
 import ManageCategoriesModal from '../components/ManageCategoriesModal';
 import Spinner from '../components/Spinner';
 import useCurrency from '../hooks/useCurrency';
+import EmptyState from '../components/EmptyState';
+
+const handleExportCSV = async () => {
+  try {
+    const res = await api.get('/transactions/export', {
+      responseType: 'blob', // Important for file download
+    });
+    const blob = new Blob([res.data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'paisable_transactions.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Failed to export CSV", error);
+    alert("Failed to export CSV. Please try again.");
+  }
+};
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
   const [summaryData, setSummaryData] = useState({
-      totalIncome: 0,
-      totalExpenses: 0,
-      balance: 0,
-    });
+    totalIncome: 0,
+    totalExpenses: 0,
+    balance: 0,
+  });
   const [loading, setLoading] = useState(true);
+  const [isFiltering, setIsFiltering] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [editingTransaction, setEditingTransaction] = useState(null);
@@ -22,35 +44,98 @@ const TransactionsPage = () => {
 
   const [viewingDetails, setViewingDetails] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const debounceTimer = useRef(null); // Changed to useRef
+
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const { currency } = useCurrency();
+  const isInitialMount = useRef(true);
+  const allCategories = [...new Set([...expenseCategories, ...incomeCategories])]; 
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (search = searchTerm) => {
+    if (isInitialMount.current) {
+      setLoading(true);
+    } else {
+      setIsFiltering(true);
+    }
+
     try {
-      const [summaryRes,transactionsRes, expenseCategoriesRes, incomeCategoriesRes] = await Promise.all([
+      const [summaryRes, expenseCategoriesRes, incomeCategoriesRes] = await Promise.all([
         api.get('/transactions/summary'),
-        api.get(`/transactions?page=${page}&limit=10`),
         api.get('/transactions/categories/expense'),
         api.get('/transactions/categories/income')
       ]);
       setSummaryData(summaryRes.data);
-      setTransactions(transactionsRes.data.transactions);
-      setTotalPages(transactionsRes.data.totalPages);
       setExpenseCategories(expenseCategoriesRes.data);
       setIncomeCategories(incomeCategoriesRes.data);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '10'
+      });
+
+      if (search) {
+        params.append('search', search);
+      }
+      if (typeFilter !== 'all') {
+        params.append('isIncome', typeFilter === 'income' ? 'true' : 'false');
+      }
+      if (categoryFilter !== 'all') {
+        params.append('category', categoryFilter);
+      }
+      if (dateFrom) {
+        params.append('startDate', dateFrom);
+      }
+      if (dateTo) {
+        params.append('endDate', dateTo);
+      }
+
+      const transactionsRes = await api.get(`/transactions?${params.toString()}`);
+      setTransactions(transactionsRes.data.transactions);
+      setTotalPages(transactionsRes.data.totalPages);
     } catch (error) {
       console.error("Failed to fetch transactions data", error);
     } finally {
       setLoading(false);
+      setIsFiltering(false);
+      isInitialMount.current = false;
     }
-  }, [page]);
+  }, [page, searchTerm, typeFilter, categoryFilter, dateFrom, dateTo]);
 
+  // Fetch transactions when fetchData changes
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      setPage(1);
+      fetchData(value);
+    }, 300);
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setTypeFilter('all');
+    setCategoryFilter('all');
+    setDateFrom('');
+    setDateTo('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = searchTerm || typeFilter !== 'all' || categoryFilter !== 'all' || dateFrom || dateTo;
 
   const handleOpenTransactionModal = (transaction = null) => {
     setEditingTransaction(transaction);
@@ -94,8 +179,12 @@ const TransactionsPage = () => {
     }
   };
 
-  const handleNewCategory = (newCategory) => {
-    setCategories(prev => [...prev, newCategory].sort());
+  const handleNewCategory = (newCategory, isIncome) => {
+    if (isIncome) {
+      setIncomeCategories(prev => [...prev, newCategory].sort());
+    } else {
+      setExpenseCategories(prev => [...prev, newCategory].sort());
+    }
   };
 
   const handleDeleteCategory = async (categoryToDelete) => {
@@ -120,13 +209,146 @@ const TransactionsPage = () => {
           <button onClick={() => handleOpenTransactionModal()} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             Add Transaction
           </button>
+          <button
+            onClick={handleExportCSV}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            title="Export all transactions to CSV"
+          >
+            Export to CSV
+          </button>
         </div>
       </div>
+      {/* Search and Filters */}
+      <div className="mb-4 bg-white p-4 rounded-lg shadow">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+          {/* Search Bar */}
+          <div className="lg:col-span-4">
+            <input
+              type="text"
+              placeholder="Search transactions..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
 
+          {/* Type Filter */}
+          <div className="lg:col-span-2">
+            <select
+              id="type-filter"
+              value={typeFilter}
+              onChange={(e) => {
+                setTypeFilter(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All Types</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </div>
+
+          {/* Category Filter */}
+          <div className="lg:col-span-2">
+            <select
+              id="category-filter"
+              value={categoryFilter}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All Categories</option>
+              {allCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Start Date */}
+          <div className="lg:col-span-2 relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500 pointer-events-none">
+              From:
+            </div>
+            <input
+              type="date"
+              id="date-from"
+              value={dateFrom}
+              onChange={(e) => {
+                setDateFrom(e.target.value);
+                setPage(1);
+              }}
+              className="w-full pl-14 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* End Date */}
+          <div className="lg:col-span-2 relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500 pointer-events-none">
+              To:
+            </div>
+            <input
+              type="date"
+              id="date-to"
+              value={dateTo}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setPage(1);
+              }}
+              className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Active Filters and Clear Button */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap justify-between items-center gap-3 mt-3 pt-3 border-t border-gray-200">
+            <div className="flex flex-wrap gap-2">
+              <span className="text-xs font-medium text-gray-600">Active:</span>
+              {searchTerm && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  "{searchTerm}"
+                </span>
+              )}
+              {typeFilter !== 'all' && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  {typeFilter === 'income' ? 'Income' : 'Expense'}
+                </span>
+              )}
+              {categoryFilter !== 'all' && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  {categoryFilter}
+                </span>
+              )}
+              {dateFrom && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                  From: {new Date(dateFrom).toLocaleDateString()}
+                </span>
+              )}
+              {dateTo && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                  To: {new Date(dateTo).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={clearAllFilters}
+              className="px-3 py-1 bg-red-500 text-white text-xs rounded-md hover:bg-red-600 transition-colors duration-200"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
+      </div>
       {loading ? (
         <Spinner />
       ) : (
-        <div className="bg-white shadow rounded-lg overflow-x-auto">
+        <div className={`bg-white shadow rounded-lg overflow-x-auto transition-opacity duration-200 ${isFiltering ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+        {transactions.length > 0 ? (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -166,6 +388,11 @@ const TransactionsPage = () => {
               ))}
             </tbody>
           </table>
+          ) : (
+          <div className="p-6">
+            <EmptyState message="No Transaction done" />
+          </div>
+                )}
         </div>
       )}
 
@@ -207,4 +434,5 @@ const TransactionsPage = () => {
   );
 };
 
-export default TransactionsPage;
+// eslint-disable-next-line react-refresh/only-export-components
+export { TransactionsPage, handleExportCSV };

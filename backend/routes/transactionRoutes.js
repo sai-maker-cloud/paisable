@@ -11,6 +11,7 @@ const {
   getExpenseCategories,
   getIncomeCategories,
   deleteCategory,
+  exportTransactions
 } = require('../controllers/transactionController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -24,6 +25,8 @@ router.route('/charts').get(protect, getChartData);
 router.route('/categories/expense').get(protect, getExpenseCategories);
 router.route('/categories/income').get(protect,getIncomeCategories);
 router.route('/category').delete(protect, deleteCategory); 
+router.route('/export').get(protect, exportTransactions);
+
 
 // Route for updating and deleting a specific transaction
 router.route('/:id')

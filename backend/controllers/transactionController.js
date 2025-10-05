@@ -1,5 +1,5 @@
 const IncomeExpense = require('../models/IncomeExpense');
-
+const Papa = require('papaparse');
 // @desc    Add a new transaction
 // @route   POST /api/transactions
 // @access  Private
@@ -29,10 +29,13 @@ const addTransaction = async (req, res) => {
 // @access  Private
 const getTransactions = async (req, res) => {
   try {
-    const { isIncome, category, startDate, endDate, page = 1, limit = 10 } = req.query;
+    const { search, isIncome, category, startDate, endDate, page = 1, limit = 10 } = req.query;
 
     const filter = { user: req.user.id, isDeleted: false };
 
+    if (search) {
+      filter.name = { $regex: search, $options: 'i' };
+    }
     if (isIncome) filter.isIncome = isIncome;
     if (category) filter.category = category;
     if (startDate || endDate) {
@@ -279,6 +282,32 @@ const deleteCategory = async (req, res) => {
   }
 };
 
+const exportTransactions = async (req, res) => {
+  try {
+    const transactions = await IncomeExpense.find({ user: req.user._id, isDeleted: false }).lean();
+
+    const csvData = transactions.map(({ _id, user, name, category, cost, addedOn, isIncome }) => ({
+      id: _id,
+      user,
+      name,
+      category,
+      cost,
+      addedOn,
+      isIncome,
+    }));
+
+    // Use Papa.unparse directly
+    const csv = Papa.unparse(csvData, { header: true });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="paisable_transactions.csv"');
+    res.status(200).send(csv);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+
 module.exports = {
   addTransaction,
   getTransactions,
@@ -289,4 +318,5 @@ module.exports = {
   getExpenseCategories,
   getIncomeCategories,
   deleteCategory,
+  exportTransactions,
 };
