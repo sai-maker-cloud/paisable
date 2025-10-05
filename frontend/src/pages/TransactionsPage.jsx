@@ -1,18 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 import TransactionModal from '../components/TransactionModal';
+import TransactionDetailModal from '../components/TransactionDetailModal'
 import ManageCategoriesModal from '../components/ManageCategoriesModal';
 import Spinner from '../components/Spinner';
 import useCurrency from '../hooks/useCurrency';
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
+  const [summaryData, setSummaryData] = useState({
+      totalIncome: 0,
+      totalExpenses: 0,
+      balance: 0,
+    });
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [editingTransaction, setEditingTransaction] = useState(null);
-  const [categories, setCategories] = useState([]);
-  
+  const [expenseCategories, setExpenseCategories] = useState([]);
+  const [incomeCategories, setIncomeCategories] = useState([]);
+
+  const [viewingDetails, setViewingDetails] = useState(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const { currency } = useCurrency();
@@ -20,13 +30,17 @@ const TransactionsPage = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [transactionsRes, categoriesRes] = await Promise.all([
+      const [summaryRes,transactionsRes, expenseCategoriesRes, incomeCategoriesRes] = await Promise.all([
+        api.get('/transactions/summary'),
         api.get(`/transactions?page=${page}&limit=10`),
-        api.get('/transactions/categories')
+        api.get('/transactions/categories/expense'),
+        api.get('/transactions/categories/income')
       ]);
+      setSummaryData(summaryRes.data);
       setTransactions(transactionsRes.data.transactions);
       setTotalPages(transactionsRes.data.totalPages);
-      setCategories(categoriesRes.data);
+      setExpenseCategories(expenseCategoriesRes.data);
+      setIncomeCategories(incomeCategoriesRes.data);
     } catch (error) {
       console.error("Failed to fetch transactions data", error);
     } finally {
@@ -47,7 +61,17 @@ const TransactionsPage = () => {
     setIsTransactionModalOpen(false);
     setEditingTransaction(null);
   };
-  
+
+  const handleOpenDetailsModal = (transaction) => {
+    setViewingDetails(transaction);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setIsDetailsModalOpen(false);
+    setViewingDetails(null);
+  };
+
   const handleFormSubmit = async (formData, id) => {
     try {
       if (id) await api.put(`/transactions/${id}`, formData);
@@ -69,7 +93,7 @@ const TransactionsPage = () => {
       }
     }
   };
-  
+
   const handleNewCategory = (newCategory) => {
     setCategories(prev => [...prev, newCategory].sort());
   };
@@ -78,7 +102,7 @@ const TransactionsPage = () => {
     if (window.confirm(`Are you sure you want to delete the category "${categoryToDelete}"? All associated transactions will be moved to "Miscellaneous".`)) {
       try {
         await api.delete('/transactions/category', { data: { categoryToDelete } });
-        fetchData(); 
+        fetchData();
       } catch (error) {
         console.error("Failed to delete category", error);
       }
@@ -100,9 +124,9 @@ const TransactionsPage = () => {
       </div>
 
       {loading ? (
-  <Spinner />
-) : (
-  <div className="bg-white shadow rounded-lg overflow-x-auto">
+        <Spinner />
+      ) : (
+        <div className="bg-white shadow rounded-lg overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -110,6 +134,7 @@ const TransactionsPage = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Note</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -120,11 +145,19 @@ const TransactionsPage = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{tx.category}</td>
                   <td className={`px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}`}>
                     {tx.isIncome ? '+' : '-'}{new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: currency.code,
-                }).format(tx.cost)}
+                      style: 'currency',
+                      currency: currency.code,
+                    }).format(tx.cost)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">{new Date(tx.addedOn).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => handleOpenDetailsModal(tx)}
+                      className="text-blue-600 hover:text-blue-800 underline font-medium"
+                    >
+                      Details
+                    </button>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button onClick={() => handleOpenTransactionModal(tx)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
                     <button onClick={() => handleDeleteTransaction(tx._id)} className="text-red-600 hover:text-red-900">Delete</button>
@@ -135,7 +168,7 @@ const TransactionsPage = () => {
           </table>
         </div>
       )}
-      
+
       <div className="flex justify-between items-center mt-4">
         <button onClick={() => setPage(p => Math.max(p - 1, 1))} disabled={page === 1} className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
           Previous
@@ -146,20 +179,29 @@ const TransactionsPage = () => {
         </button>
       </div>
 
-      <TransactionModal 
+      <TransactionModal
         isOpen={isTransactionModalOpen}
         onClose={handleCloseTransactionModal}
         onSubmit={handleFormSubmit}
         transaction={editingTransaction}
-        categories={categories}
+        expenseCategories={expenseCategories}
+        incomeCategories={incomeCategories}
         onNewCategory={handleNewCategory}
+        currentBalance={summaryData.balance}
       />
-      
-      <ManageCategoriesModal 
+      <ManageCategoriesModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
-        allCategories={categories}
+        expenseCategories={expenseCategories}
+        incomeCategories={incomeCategories}
         onDelete={handleDeleteCategory}
+      />
+
+      <TransactionDetailModal
+        isOpen={isDetailsModalOpen}
+        onClose={handleCloseDetailsModal}
+        transaction={viewingDetails}
+        currency={currency}
       />
     </>
   );

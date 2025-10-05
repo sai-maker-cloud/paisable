@@ -8,7 +8,8 @@ const {
   deleteTransaction,
   getTransactionSummary,
   getChartData,
-  getCategories,
+  getExpenseCategories,
+  getIncomeCategories,
   deleteCategory,
 } = require('../controllers/transactionController');
 
@@ -20,7 +21,8 @@ router.route('/')
 
 router.route('/summary').get(protect, getTransactionSummary);
 router.route('/charts').get(protect, getChartData);
-router.route('/categories').get(protect, getCategories);
+router.route('/categories/expense').get(protect, getExpenseCategories);
+router.route('/categories/income').get(protect,getIncomeCategories);
 router.route('/category').delete(protect, deleteCategory); 
 
 // Route for updating and deleting a specific transaction
