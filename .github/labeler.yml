@@ -1,11 +1,11 @@
 frontend:
-  - "frontend/**"
+  - "frontend/**/*"
 
 backend:
-  - "backend/**"
+  - "backend/**/*"
 
 docs:
-  - "docs/**"
+  - "docs/**/*"
   - "**/*.md"
 
 tests:
