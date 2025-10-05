@@ -1,12 +1,12 @@
 frontend:
-  - 'frontend/**'
+  - "frontend/**"
 
 backend:
-  - 'backend/**'
+  - "backend/**"
 
 docs:
-  - 'docs/**'
-  - '**/*.md'
+  - "docs/**"
+  - "**/*.md"
 
 tests:
-  - '**/__tests__/**/*'
+  - "**/__tests__/**/*"
