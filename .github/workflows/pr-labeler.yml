@@ -8,10 +8,12 @@ jobs:
   add-labels:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write  # ✅ allow labeling
+      contents: read
+      pull-requests: write
     steps:
 
       - name: Label PR based on files changed
         uses: actions/labeler@v5
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
