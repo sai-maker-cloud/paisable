@@ -144,33 +144,39 @@ const ContactUs = () => {
     window.scrollTo(0, 0); // Scroll to top
   }, []);
 
-  const faqs = [
-    {
-      question: "How secure is my financial data?",
-      answer:
-        "We use bank-level encryption and security protocols to protect your data. All information is encrypted in transit and at rest, and we never share your personal data with third parties without your explicit consent.",
-    },
-    {
-      question: "Can I connect my bank accounts?",
-      answer:
-        "Yes, we support connections with over 10,000 financial institutions worldwide through secure, read-only connections. Your login credentials are never stored on our servers.",
-    },
-    {
-      question: "Is there a mobile app available?",
-      answer:
-        "Absolutely! Our app is available for both iOS and Android devices. You can download it from the App Store or Google Play Store and sync your data across all your devices.",
-    },
-    {
-      question: "What happens if I cancel my subscription?",
-      answer:
-        "If you cancel, you'll continue to have access to premium features until the end of your billing cycle. After that, your account will revert to the free version, but all your data will remain accessible.",
-    },
-    {
-      question: "How does the receipt scanning feature work?",
-      answer:
-        "Our advanced OCR technology extracts key information from your receipt photos, including merchant name, date, and amount. This data is then automatically categorized and added to your expense tracking.",
-    },
-  ];
+const faqs = [
+  {
+    question: "Is my financial data secure on Paisable?",
+    answer:
+      "Yes. Paisable uses advanced encryption (AES-256) and secure HTTPS connections to protect your data. All personal and financial details are encrypted both in transit and at rest. We never share or sell your data to anyone.",
+  },
+  {
+    question: "Can I scan and upload receipts using Paisable?",
+    answer:
+      "Absolutely! Paisable integrates Google Gemini AI for OCR-based receipt scanning. Just upload a photo of your receipt, and the app automatically extracts merchant name, amount, and date, then categorizes it as a transaction.",
+  },
+  {
+    question: "Do I need to pay to use Paisable?",
+    answer:
+      "No. Paisable is completely free to use for personal finance tracking. In future, we may introduce optional premium features like multi-account analytics or AI-based financial insights.",
+  },
+  {
+    question: "Can I access my account from multiple devices?",
+    answer:
+      "Yes. Paisable is a web-based app, so you can securely log in from any device—desktop, tablet, or mobile browser. Your data stays synced across all devices automatically.",
+  },
+  {
+    question: "What happens if I delete my account?",
+    answer:
+      "When you delete your account from the Settings page, all your data—including transactions, receipts, and analytics—is permanently erased from our servers. This action is irreversible for your privacy and security.",
+  },
+  {
+    question: "Will there be a mobile app version?",
+    answer:
+      "We’re currently developing a mobile app for both iOS and Android so you can manage your finances on the go. Stay tuned for announcements on our official site!",
+  },
+];
+
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen font-montserrat text-gray-800 dark:text-gray-200">
