@@ -21,6 +21,7 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/contact" element={<ContactUs />} />
+      {/* Protected Routes */}
       <Route
         path="/setup"
         element={
@@ -29,6 +30,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+      {/* Protected Routes Wrapper */}
       <Route
         element={
           <SetupProtectedRoute>
