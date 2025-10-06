@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from "react";
 
 const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
   const [formData, setFormData] = useState({
     category: "",
     amount: "",
+=======
+import React, { useState, useEffect } from 'react';
+
+const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
+  const [formData, setFormData] = useState({
+    category: '',
+    amount: '',
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
   });
@@ -18,8 +27,13 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
       });
     } else {
       setFormData({
+<<<<<<< HEAD
         category: categories[0] || "",
         amount: "",
+=======
+        category: categories[0] || '',
+        amount: '',
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
         month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),
       });
@@ -39,23 +53,38 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
   if (!isOpen) return null;
 
   return (
+<<<<<<< HEAD
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
         <h2 className="text-xl font-bold mb-4">
           {budget ? "Edit Budget" : "Add Budget"}
+=======
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+        <h2 className="text-2xl font-bold mb-4">
+          {budget ? 'Edit Budget' : 'Add Budget'}
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
+<<<<<<< HEAD
             <label className="block text-sm font-medium text-gray-700">
               Category
             </label>
+=======
+            <label className="block text-gray-700">Category</label>
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
             <select
               name="category"
               value={formData.category}
               onChange={handleChange}
               required
+<<<<<<< HEAD
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+=======
+              className="mt-1 block w-full border rounded px-3 py-2"
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
             >
               {categories.map((c) => (
                 <option key={c} value={c}>
@@ -66,9 +95,13 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
           </div>
 
           <div>
+<<<<<<< HEAD
             <label className="block text-sm font-medium text-gray-700">
               Amount
             </label>
+=======
+            <label className="block text-gray-700">Amount</label>
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
             <input
               type="number"
               name="amount"
@@ -76,14 +109,22 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
               onChange={handleChange}
               required
               min="0"
+<<<<<<< HEAD
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+=======
+              className="mt-1 block w-full border rounded px-3 py-2"
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
             />
           </div>
 
           <div>
+<<<<<<< HEAD
             <label className="block text-sm font-medium text-gray-700">
               Month
             </label>
+=======
+            <label className="block text-gray-700">Month</label>
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
             <input
               type="number"
               name="month"
@@ -92,14 +133,22 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
               min="1"
               max="12"
               required
+<<<<<<< HEAD
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+=======
+              className="mt-1 block w-full border rounded px-3 py-2"
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
             />
           </div>
 
           <div>
+<<<<<<< HEAD
             <label className="block text-sm font-medium text-gray-700">
               Year
             </label>
+=======
+            <label className="block text-gray-700">Year</label>
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
             <input
               type="number"
               name="year"
@@ -108,7 +157,11 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
               required
               min="2000"
               max="2100"
+<<<<<<< HEAD
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+=======
+              className="mt-1 block w-full border rounded px-3 py-2"
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
             />
           </div>
 
@@ -116,15 +169,25 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
             <button
               type="button"
               onClick={onClose}
+<<<<<<< HEAD
               className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+=======
+              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 focus:outline-none"
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
             >
               Cancel
             </button>
             <button
               type="submit"
+<<<<<<< HEAD
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               {budget ? "Update" : "Add"}
+=======
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none"
+            >
+              {budget ? 'Update' : 'Add'}
+>>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
             </button>
           </div>
         </form>
