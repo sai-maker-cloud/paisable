@@ -48,8 +48,16 @@ const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 
 cron.schedule("*/10 * * * *", async () => {
+  const keepAliveUrl = process.env.KEEP_ALIVE_URL;
+  if (!keepAliveUrl) {
+    console.error(
+      "KEEP_ALIVE_URL environment variable is not set. Skipping keep-alive ping."
+    );
+    return;
+  }
+
   try {
-    await axios.get("https://paisable.onrender.com");
+    await axios.get(keepAliveUrl);
     console.log("Keep-alive ping sent ✅");
   } catch (error) {
     console.error("Keep-alive failed ❌", error.message);
