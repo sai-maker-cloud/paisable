@@ -23,7 +23,7 @@ function App() {
         <Route path="/" element={<WelcomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-      <Route path="/contact" element={<ContactUs />} />
+        <Route path="/contact" element={<ContactUs />} />
         {/* Protected Routes */}
         <Route
         path="/setup"
