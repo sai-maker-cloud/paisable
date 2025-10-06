@@ -39,12 +39,9 @@ const Layout = () => {
                   <NavLink to="/receipts" className={getNavLinkClass}>
                     Receipts
                   </NavLink>
-<<<<<<< HEAD
-=======
                   <NavLink to="/settings" className={getNavLinkClass}>
                     Settings
                   </NavLink>
->>>>>>> 2376212bc18bbe420729844108ff844b3f0683a5
                   <NavLink to="/budgets" className={getNavLinkClass}>
                     Budgets
                   </NavLink>
