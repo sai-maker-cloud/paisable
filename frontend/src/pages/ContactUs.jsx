@@ -178,7 +178,6 @@ const faqs = [
 ];
 
 
-
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen font-montserrat text-gray-800 dark:text-gray-200">
       {/* Header */}
