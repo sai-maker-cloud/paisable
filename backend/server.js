@@ -4,7 +4,8 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const axios = require('axios');
-const cron = require('./cron');
+const cron = require('node-cron');
+require('./cron');
 
 // Load environment variables
 dotenv.config();
