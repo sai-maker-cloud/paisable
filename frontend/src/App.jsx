@@ -11,6 +11,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SetupProtectedRoute from './components/SetupProtectedRoute';
 import Layout from './components/Layout';
 import SettingsPage from './pages/SettingsPage';
+import ContactUs from "./pages/ContactUs"; 
+
 
 function App() {
   return (
@@ -19,12 +21,18 @@ function App() {
       <Route path="/" element={<WelcomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-
+      <Route path="/contact" element={<ContactUs />} />
       {/* Protected Routes */}
-      <Route path="/setup" element={<ProtectedRoute><SetupPage /></ProtectedRoute>} />
-      
+      <Route
+        path="/setup"
+        element={
+          <ProtectedRoute>
+            <SetupPage />
+          </ProtectedRoute>
+        }
+      />
       {/* Protected Routes Wrapper */}
-      <Route 
+      <Route
         element={
           <SetupProtectedRoute>
             <Layout />
