@@ -114,6 +114,48 @@ const deleteTransaction = async (req, res) => {
   }
 };
 
+// @desc    Bulk delete transactions
+// @route   DELETE /api/transactions/bulk
+// @access  Private
+const bulkDeleteTransactions = async (req, res) => {
+  try {
+    const { transactionIds } = req.body;
+
+    if (!transactionIds || !Array.isArray(transactionIds) || transactionIds.length === 0) {
+      return res.status(400).json({ message: 'Transaction IDs array is required' });
+    }
+
+    // Verify all transactions belong to the user and exist
+    const transactions = await IncomeExpense.find({
+      _id: { $in: transactionIds },
+      user: req.user.id,
+      isDeleted: false
+    });
+
+    if (transactions.length !== transactionIds.length) {
+      return res.status(404).json({ 
+        message: 'Some transactions not found or not authorized' 
+      });
+    }
+
+    // Mark all transactions as deleted
+    const result = await IncomeExpense.updateMany(
+      {
+        _id: { $in: transactionIds },
+        user: req.user.id
+      },
+      { isDeleted: true }
+    );
+
+    res.json({ 
+      message: `${result.modifiedCount} transactions deleted successfully`,
+      deletedCount: result.modifiedCount
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
 // @desc    Get transaction summary for a user
 // @route   GET /api/transactions/summary
 // @access  Private
@@ -283,6 +325,7 @@ module.exports = {
   getTransactions,
   updateTransaction,
   deleteTransaction,
+  bulkDeleteTransactions,
   getTransactionSummary,
   getChartData,
   getCategories,

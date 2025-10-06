@@ -6,6 +6,7 @@ const {
   getTransactions,
   updateTransaction,
   deleteTransaction,
+  bulkDeleteTransactions,
   getTransactionSummary,
   getChartData,
   getCategories,
@@ -24,6 +25,7 @@ router.route('/charts').get(protect, getChartData);
 router.route('/categories').get(protect, getCategories);
 router.route('/category').delete(protect, deleteCategory);
 router.route('/export').get(protect, exportTransactions);
+router.route('/bulk').delete(protect, bulkDeleteTransactions);
 
 // Route for updating and deleting a specific transaction
 router.route('/:id')

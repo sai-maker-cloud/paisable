@@ -191,12 +191,14 @@ const TransactionsPage = () => {
     const confirmMessage = `Are you sure you want to permanently delete these ${selectedTransactionIds.length} transactions? This action cannot be undone.`;
     if (window.confirm(confirmMessage)) {
       try {
-        await api.delete('/transactions', { data: { ids: selectedTransactionIds } });
+        await api.delete('/transactions/bulk', { 
+          data: { transactionIds: selectedTransactionIds } 
+        });
         setSelectedTransactionIds([]);
         fetchData(); // Refetch data
       } catch (error) {
         console.error('Failed to bulk delete transactions', error);
-        alert(`Failed to delete some transactions. Please try again.`);
+        alert('Failed to delete transactions. Please try again.');
       }
     }
   };
