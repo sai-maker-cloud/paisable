@@ -1,7 +1,5 @@
 const RecurringTransaction = require('../models/RecurringTransactions');
-
-
-
+const { calculateNextDueDate } = require('../utils');
 
 const createRecurringTransaction = async (req, res) => {
     const { name, category, amount, isIncome, frequency, startDate } = req.body;
@@ -11,7 +9,8 @@ const createRecurringTransaction = async (req, res) => {
             return res.status(400).json({ message: 'Missing required fields' });
         }
 
-        const nextDueDate = new Date(startDate);
+        const nextDueDate = calculateNextDueDate(startDate, frequency);
+
 
         const recurringTransaction = new RecurringTransaction({
             user: req.user.id,
@@ -46,9 +45,24 @@ const getRecurringTransactions = async (req, res) => {
 
 const updateRecurringTransaction = async (req, res) => {
     try {
+        const { name, category, amount, isIncome, frequency, startDate } = req.body;
+
+        const updateData = { name, category, amount, isIncome, frequency, startDate };
+
+        if (startDate || frequency) {
+            const transaction = await RecurringTransaction.findOne({ _id: req.params.id, user: req.user.id });
+            if (!transaction) {
+                return res.status(404).json({ message: 'Recurring transaction not found' });
+            }
+
+            const newStartDate = startDate || transaction.startDate;
+            const newFrequency = frequency || transaction.frequency;
+            updateData.nextDueDate = calculateNextDueDate(newStartDate, newFrequency);
+        }
+
         const updated = await RecurringTransaction.findOneAndUpdate(
             { _id: req.params.id, user: req.user.id },
-            req.body,
+            updateData,
             { new: true }
         );
 

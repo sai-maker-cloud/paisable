@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const RecurringTransactions = require('./models/RecurringTransactions');
 const IncomeExpense = require('./models/IncomeExpense');
+const { calculateNextDueDate } = require('./utils');
 
 cron.schedule('0 0 * * *', async () => {
     console.log('=== Running Recurring Transactions Cron ===');
@@ -27,25 +28,7 @@ cron.schedule('0 0 * * *', async () => {
 
                 console.log(`Created transaction: ${transaction.name}, amount: ${transaction.amount}`);
 
-                let next = new Date(item.nextDueDate);
-                switch (item.frequency) {
-                    case 'daily':
-                        next.setDate(next.getDate() + 1);
-                        break;
-                    case 'weekly':
-                        next.setDate(next.getDate() + 7);
-                        break;
-                    case 'monthly':
-                        next.setMonth(next.getMonth() + 1);
-                        break;
-                    case 'annually':
-                        next.setFullYear(next.getFullYear() + 1);
-                        break;
-                    default:
-                        console.warn(`Unknown frequency '${item.frequency}' for ${item.name}`);
-                }
-
-                item.nextDueDate = next;
+                item.nextDueDate = calculateNextDueDate(item.startDate, item.frequency, item.nextDueDate);
                 await item.save();
 
                 console.log(`Updated nextDueDate for ${item.name} to ${item.nextDueDate}`);
