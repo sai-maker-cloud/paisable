@@ -10,22 +10,7 @@
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      // Set initial favicon based on saved theme or system preference
-      const savedTheme = localStorage.getItem('theme');
-      let initialTheme = 'light';
-      
-      if (savedTheme) {
-        initialTheme = savedTheme;
-      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        initialTheme = 'dark';
-      }
-      
-      const favicon = document.getElementById('favicon');
-      if (favicon) {
-        favicon.href = initialTheme === 'dark' ? '/favicon-dark.svg' : '/favicon-light.svg';
-      }
-    </script>
+    <!-- Favicon initialization is now handled in src/main.jsx -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

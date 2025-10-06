@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { updateFavicon } from '../utils/favicon';
 
 const ThemeContext = createContext();
 
@@ -22,12 +23,7 @@ export const ThemeProvider = ({ children }) => {
       root.classList.remove('dark');
     }
     localStorage.setItem('theme', theme);
-
-    // Update favicon based on theme
-    const favicon = document.getElementById('favicon');
-    if (favicon) {
-      favicon.href = theme === 'dark' ? '/favicon-dark.svg' : '/favicon-light.svg';
-    }
+    updateFavicon(theme);
   }, [theme]);
 
   const toggleTheme = () => {
