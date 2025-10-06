@@ -11,7 +11,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SetupProtectedRoute from './components/SetupProtectedRoute';
 import Layout from './components/Layout';
 import SettingsPage from './pages/SettingsPage';
-import ContactUs from "./pages/ContactUs";
+import ContactUs from "./pages/ContactUs"; 
+
 
 function App() {
   return (
