@@ -1,4 +1,5 @@
-import React from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -16,39 +17,42 @@ import ContactUs from './pages/ContactUs';
 
 function App() {
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<WelcomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/contact" element={<ContactUs />} />
-      {/* Protected Routes */}
-      <Route
+    <>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<WelcomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/contact" element={<ContactUs />} />
+        {/* Protected Routes */}
+        <Route
         path="/setup"
         element={
           <ProtectedRoute>
             <SetupPage />
           </ProtectedRoute>
         }
-      />
-      {/* Protected Routes Wrapper */}
-      <Route
-        element={
-          <SetupProtectedRoute>
-            <Layout />
-          </SetupProtectedRoute>
-        }
-      >
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/transactions" element={<TransactionsPage />} />
-        <Route path="/receipts" element={<ReceiptsPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        />
+        {/* Protected Routes Wrapper */}
+        <Route
+          element={
+            <SetupProtectedRoute>
+              <Layout />
+            </SetupProtectedRoute>
+          }
+        >
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/receipts" element={<ReceiptsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         <Route
           path="/recurring-transactions"
           element={<RecurringTransactions />}
         />
-      </Route>
-    </Routes>
+        </Route>
+      </Routes>
+      <ToastContainer />
+    </>
   );
 }
 
