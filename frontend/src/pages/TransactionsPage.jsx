@@ -5,26 +5,7 @@ import ManageCategoriesModal from '../components/ManageCategoriesModal';
 import Spinner from '../components/Spinner';
 import useCurrency from '../hooks/useCurrency';
 import EmptyState from '../components/EmptyState';
-
-const handleExportCSV = async () => {
-  try {
-    const res = await api.get('/transactions/export', {
-      responseType: 'blob', // Important for file download
-    });
-    const blob = new Blob([res.data], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'paisable_transactions.csv';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error("Failed to export CSV", error);
-    alert("Failed to export CSV. Please try again.");
-  }
-};
+import { handleExportCSV } from '../utils/transactions';
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
@@ -329,7 +310,7 @@ const TransactionsPage = () => {
       {loading ? (
         <Spinner />
       ) : (
-        <div className={"bg-white shadow rounded-lg overflow-x-auto transition-opacity duration-200 ${isFiltering ? 'opacity-50 pointer-events-none' : 'opacity-100'}"}>
+        <div className={`bg-white shadow rounded-lg overflow-x-auto transition-opacity duration-200 ${isFiltering ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
           {transactions.length > 0 ? (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -398,5 +379,4 @@ const TransactionsPage = () => {
   );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
-export {TransactionsPage,handleExportCSV};
+export default TransactionsPage;
