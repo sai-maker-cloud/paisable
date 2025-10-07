@@ -18,8 +18,10 @@ export default function LoginPage() {
     setServerError(''); // Clear previous server errors
     try {
       await login(email, password);
+      // Toast handled globally in AuthContext
     } catch (error) {
       setServerError(error.message);
+      // Toast handled globally in AuthContext
     }
   };
 
