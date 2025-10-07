@@ -125,8 +125,7 @@ const TransactionsPage = () => {
     debounceTimer.current = setTimeout(() => {
       setPage(1);
       fetchData(value);
-      debounceTimer.current = null;
-    }, 500);
+    }, 300);
   };
 
   const clearAllFilters = () => {
@@ -166,13 +165,17 @@ const TransactionsPage = () => {
     if (window.confirm("Are you sure you want to delete this transaction?")) {
       try {
         await api.delete(`/transactions/${id}`);
-        // Refetch data, potentially adjusting page if it becomes empty
-        setTransactions(prev => prev.filter(t => t._id !== id));
-        if (transactions.length === 1 && page > 1) {
+        // Compute the new transactions array after deletion
+        setTransactions(prev => {
+          const updated = prev.filter(t => t._id !== id);
+          // If deleting the last item on the page and not on the first page, go back a page
+          if (updated.length === 0 && page > 1) {
             setPage(page - 1);
-        } else {
+          } else {
             fetchData();
-        }
+          }
+          return updated;
+        });
       } catch (error) {
         console.error("Failed to delete transaction", error);
       }
@@ -380,7 +383,9 @@ const TransactionsPage = () => {
               </tbody>
             </table>
           ) : (
-            <EmptyState message={hasActiveFilters ? "No transactions match your filters." : "No transactions found. Add one to get started!"} />
+            <div className="p-6">
+              <EmptyState message="No Transaction done" />
+            </div>
           )}
         </div>
       )}
