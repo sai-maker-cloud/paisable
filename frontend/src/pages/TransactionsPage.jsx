@@ -128,14 +128,21 @@ const TransactionsPage = () => {
     }, 300);
   };
 
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
   const clearAllFilters = () => {
     setSearchTerm('');
     setTypeFilter('all');
     setCategoryFilter('all');
     setDateFrom('');
     setDateTo('');
-    if (page !== 1) setPage(1);
-    else fetchData(''); // Manually trigger fetch if page is already 1
+    setPage(1);
   };
   
   const hasActiveFilters = searchTerm || typeFilter !== 'all' || categoryFilter !== 'all' || dateFrom || dateTo;
@@ -167,14 +174,13 @@ const TransactionsPage = () => {
         await api.delete(`/transactions/${id}`);
         // Compute the new transactions array after deletion
         setTransactions(prev => {
-          const updated = prev.filter(t => t._id !== id);
-          // If deleting the last item on the page and not on the first page, go back a page
-          if (updated.length === 0 && page > 1) {
-            setPage(page - 1);
+          const updatedTransactions = prev.filter(t => t._id !== id);
+          if (updatedTransactions.length === 0 && page > 1) {
+            setPage(page - 1); // useEffect will trigger fetchData
           } else {
             fetchData();
           }
-          return updated;
+          return updatedTransactions;
         });
       } catch (error) {
         console.error("Failed to delete transaction", error);
@@ -330,6 +336,7 @@ const TransactionsPage = () => {
                       type="checkbox"
                       className="w-4 h-4 rounded focus:ring-2 focus:ring-blue-600 hover:ring-4 hover:ring-blue-200 transition-all duration-200 cursor-pointer"
                       checked={transactions.length > 0 && selectedTransactionIds.length === transactions.length}
+                      disabled={transactions.length === 0}
                       onChange={() => setSelectedTransactionIds(selectedTransactionIds.length ? [] : transactions.map(t => t._id))}
                     />
                   </th>
