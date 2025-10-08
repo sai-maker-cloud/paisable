@@ -9,7 +9,8 @@ const {
   bulkDeleteTransactions,
   getTransactionSummary,
   getChartData,
-  getCategories,
+  getExpenseCategories,
+  getIncomeCategories,
   deleteCategory,
   exportTransactions
 } = require('../controllers/transactionController');
@@ -22,10 +23,12 @@ router.route('/')
 
 router.route('/summary').get(protect, getTransactionSummary);
 router.route('/charts').get(protect, getChartData);
-router.route('/categories').get(protect, getCategories);
-router.route('/category').delete(protect, deleteCategory);
+router.route('/categories/expense').get(protect, getExpenseCategories);
+router.route('/categories/income').get(protect,getIncomeCategories);
+router.route('/category').delete(protect, deleteCategory); 
 router.route('/export').get(protect, exportTransactions);
 router.route('/bulk').delete(protect, bulkDeleteTransactions);
+
 
 // Route for updating and deleting a specific transaction
 router.route('/:id')

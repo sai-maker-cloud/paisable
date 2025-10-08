@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../api/axios';
 import TransactionModal from '../components/TransactionModal';
+import TransactionDetailModal from '../components/TransactionDetailModal'
 import ManageCategoriesModal from '../components/ManageCategoriesModal';
 import Spinner from '../components/Spinner';
 import useCurrency from '../hooks/useCurrency';
@@ -29,23 +30,38 @@ const handleExportCSV = async () => {
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
+  const [summaryData, setSummaryData] = useState({
+    totalIncome: 0,
+    totalExpenses: 0,
+    balance: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [isFiltering, setIsFiltering] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [editingTransaction, setEditingTransaction] = useState(null);
-  const [categories, setCategories] = useState([]);
+
+  const [expenseCategories, setExpenseCategories] = useState([]);
+  const [incomeCategories, setIncomeCategories] = useState([]);
+
+  const [viewingDetails, setViewingDetails] = useState(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   const [selectedTransactionIds, setSelectedTransactionIds] = useState([]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const debounceTimer = useRef(null);
+  const debounceTimer = useRef(null); // Changed to useRef
+
+
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const { currency } = useCurrency();
   const isInitialMount = useRef(true);
+  const allCategories = [...new Set([...expenseCategories, ...incomeCategories])]; 
 
   const fetchData = useCallback(async (currentSearchTerm = searchTerm) => {
     if (isInitialMount.current) {
@@ -55,6 +71,14 @@ const TransactionsPage = () => {
     }
 
     try {
+      const [summaryRes, expenseCategoriesRes, incomeCategoriesRes] = await Promise.all([
+        api.get('/transactions/summary'),
+        api.get('/transactions/categories/expense'),
+        api.get('/transactions/categories/income')
+      ]);
+      setSummaryData(summaryRes.data);
+      setExpenseCategories(expenseCategoriesRes.data);
+      setIncomeCategories(incomeCategoriesRes.data);
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '10'
@@ -75,7 +99,7 @@ const TransactionsPage = () => {
       if (dateTo) {
         params.append('endDate', dateTo);
       }
-      
+
       const transactionsRes = await api.get(`/transactions?${params.toString()}`);
       setTransactions(transactionsRes.data.transactions);
       setTotalPages(transactionsRes.data.totalPages);
@@ -90,18 +114,7 @@ const TransactionsPage = () => {
     }
   }, [page, typeFilter, categoryFilter, dateFrom, dateTo, searchTerm]);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const categoriesRes = await api.get('/transactions/categories');
-        setCategories(categoriesRes.data);
-      } catch (error) {
-        console.error("Failed to fetch categories", error);
-      }
-    };
-    fetchCategories();
-  }, []);
-
+  // Fetch transactions when fetchData changes
   useEffect(() => {
     // This effect handles all data fetching except for debounced search
     if (isInitialMount.current) {
@@ -155,6 +168,16 @@ const TransactionsPage = () => {
   const handleCloseTransactionModal = () => {
     setIsTransactionModalOpen(false);
     setEditingTransaction(null);
+  };
+
+  const handleOpenDetailsModal = (transaction) => {
+    setViewingDetails(transaction);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setIsDetailsModalOpen(false);
+    setViewingDetails(null);
   };
 
   const handleFormSubmit = async (formData, id) => {
@@ -211,9 +234,13 @@ const TransactionsPage = () => {
       }
     }
   };
+  const handleNewCategory = (newCategory, isIncome) => {
+    if (isIncome) {
+      setIncomeCategories(prev => [...prev, newCategory].sort());
+    } else {
+      setExpenseCategories(prev => [...prev, newCategory].sort());
+    }
 
-  const handleNewCategory = (newCategory) => {
-    setCategories(prev => [...prev, newCategory].sort());
   };
 
   const handleDeleteCategory = async (categoryToDelete) => {
@@ -252,7 +279,7 @@ const TransactionsPage = () => {
           </button>
         </div>
       </div>
-
+      {/* Search and Filters */}
       <div className="mb-4 bg-white p-4 rounded-lg shadow">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
           <div className="lg:col-span-4">
@@ -282,8 +309,10 @@ const TransactionsPage = () => {
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
+              {allCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
               ))}
             </select>
           </div>
@@ -322,16 +351,15 @@ const TransactionsPage = () => {
           </div>
         )}
       </div>
-
       {loading ? (
         <Spinner />
       ) : (
         <div className={`bg-white shadow rounded-lg overflow-x-auto hover:shadow-lg transition-all duration-300 ${isFiltering ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-          {transactions.length > 0 ? (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-2 py-3">
+        {transactions.length > 0 ? (
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                 <th className="px-2 py-3">
                     <input
                       type="checkbox"
                       className="w-4 h-4 rounded focus:ring-2 focus:ring-blue-600 hover:ring-4 hover:ring-blue-200 transition-all duration-200 cursor-pointer"
@@ -340,17 +368,18 @@ const TransactionsPage = () => {
                       onChange={() => setSelectedTransactionIds(selectedTransactionIds.length ? [] : transactions.map(t => t._id))}
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {transactions.map((tx) => (
-                  <tr key={tx._id} className="hover:shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-shadow duration-200">
-                    <td className="px-2 py-6 text-center">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Note</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {transactions.map((tx) => (
+                <tr key={tx._id} className="hover:shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-shadow duration-200">
+                  <td className="px-2 py-6 text-center">
                       <input
                         type="checkbox"
                         className="w-4 h-4 rounded focus:ring-2 focus:ring-blue-600 hover:ring-4 hover:ring-blue-200 transition-all duration-200 cursor-pointer"
@@ -358,16 +387,24 @@ const TransactionsPage = () => {
                         onChange={() => toggleSelect(tx._id)}
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{tx.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{tx.category}</td>
-                    <td className={`px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}`}>
-                      {tx.isIncome ? '+' : '-'}{new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: currency.code,
-                      }).format(tx.cost)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{new Date(tx.addedOn).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap">{tx.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{tx.category}</td>
+                  <td className={`px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}`}>
+                    {tx.isIncome ? '+' : '-'}{new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: currency.code,
+                    }).format(tx.cost)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">{new Date(tx.addedOn).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => handleOpenDetailsModal(tx)}
+                      className="text-blue-600 hover:text-blue-800 underline font-medium"
+                    >
+                      Details
+                    </button>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleOpenTransactionModal(tx)}
@@ -385,15 +422,15 @@ const TransactionsPage = () => {
                         </button>
                       </div>
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </tr>
+              ))}
+            </tbody>
+          </table>
           ) : (
-            <div className="p-6">
-              <EmptyState message="No Transaction done" />
-            </div>
-          )}
+          <div className="p-6">
+            <EmptyState message="No Transaction done" />
+          </div>
+                )}
         </div>
       )}
 
@@ -430,15 +467,24 @@ const TransactionsPage = () => {
         onClose={handleCloseTransactionModal}
         onSubmit={handleFormSubmit}
         transaction={editingTransaction}
-        categories={categories}
+        expenseCategories={expenseCategories}
+        incomeCategories={incomeCategories}
         onNewCategory={handleNewCategory}
+        currentBalance={summaryData.balance}
       />
-
       <ManageCategoriesModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
-        allCategories={categories}
+        expenseCategories={expenseCategories}
+        incomeCategories={incomeCategories}
         onDelete={handleDeleteCategory}
+      />
+
+      <TransactionDetailModal
+        isOpen={isDetailsModalOpen}
+        onClose={handleCloseDetailsModal}
+        transaction={viewingDetails}
+        currency={currency}
       />
     </>
   );
