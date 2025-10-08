@@ -50,6 +50,9 @@ const Layout = () => {
                   <NavLink to="/settings" className={getNavLinkClass}>
                     Settings
                   </NavLink>
+                  <NavLink to="/budgets" className={getNavLinkClass}>
+                    Budgets
+                  </NavLink>
                   <NavLink
                     to="/recurring-transactions"
                     className={getNavLinkClass}
