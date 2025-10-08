@@ -54,7 +54,7 @@ export default function WelcomePage() {
           {user ? (
             <>
               <Link to="/dashboard" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-semibold">Dashboard</Link>
-              <button onClick={logout} className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700">Logout</button>
+              <button onClick={logout} className="bg-red-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-red-600">Logout</button>
             </>
           ) : (
             <>
