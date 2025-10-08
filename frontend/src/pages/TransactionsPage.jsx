@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../api/axios';
 import TransactionModal from '../components/TransactionModal';
 import TransactionDetailModal from '../components/TransactionDetailModal'
@@ -10,7 +11,7 @@ import EmptyState from '../components/EmptyState';
 const handleExportCSV = async () => {
   try {
     const res = await api.get('/transactions/export', {
-      responseType: 'blob', // Important for file download
+      responseType: 'blob',
     });
     const blob = new Blob([res.data], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -39,11 +40,15 @@ const TransactionsPage = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [editingTransaction, setEditingTransaction] = useState(null);
+
   const [expenseCategories, setExpenseCategories] = useState([]);
   const [incomeCategories, setIncomeCategories] = useState([]);
 
   const [viewingDetails, setViewingDetails] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
+  const [selectedTransactionIds, setSelectedTransactionIds] = useState([]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -58,7 +63,7 @@ const TransactionsPage = () => {
   const isInitialMount = useRef(true);
   const allCategories = [...new Set([...expenseCategories, ...incomeCategories])]; 
 
-  const fetchData = useCallback(async (search = searchTerm) => {
+  const fetchData = useCallback(async (currentSearchTerm = searchTerm) => {
     if (isInitialMount.current) {
       setLoading(true);
     } else {
@@ -79,8 +84,8 @@ const TransactionsPage = () => {
         limit: '10'
       });
 
-      if (search) {
-        params.append('search', search);
+      if (currentSearchTerm) {
+        params.append('search', currentSearchTerm);
       }
       if (typeFilter !== 'all') {
         params.append('isIncome', typeFilter === 'income' ? 'true' : 'false');
@@ -98,6 +103,8 @@ const TransactionsPage = () => {
       const transactionsRes = await api.get(`/transactions?${params.toString()}`);
       setTransactions(transactionsRes.data.transactions);
       setTotalPages(transactionsRes.data.totalPages);
+      setSelectedTransactionIds([]); // Clear selection on data change
+
     } catch (error) {
       console.error("Failed to fetch transactions data", error);
     } finally {
@@ -105,11 +112,19 @@ const TransactionsPage = () => {
       setIsFiltering(false);
       isInitialMount.current = false;
     }
-  }, [page, searchTerm, typeFilter, categoryFilter, dateFrom, dateTo]);
+  }, [page, typeFilter, categoryFilter, dateFrom, dateTo, searchTerm]);
 
   // Fetch transactions when fetchData changes
   useEffect(() => {
-    fetchData();
+    // This effect handles all data fetching except for debounced search
+    if (isInitialMount.current) {
+      fetchData(); // Fetch on initial mount
+    } else {
+       // Debounced search is handled separately in handleSearchChange
+      if (!debounceTimer.current) {
+        fetchData();
+      }
+    }
   }, [fetchData]);
 
   const handleSearchChange = (e) => {
@@ -126,6 +141,14 @@ const TransactionsPage = () => {
     }, 300);
   };
 
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
   const clearAllFilters = () => {
     setSearchTerm('');
     setTypeFilter('all');
@@ -134,7 +157,7 @@ const TransactionsPage = () => {
     setDateTo('');
     setPage(1);
   };
-
+  
   const hasActiveFilters = searchTerm || typeFilter !== 'all' || categoryFilter !== 'all' || dateFrom || dateTo;
 
   const handleOpenTransactionModal = (transaction = null) => {
@@ -172,19 +195,52 @@ const TransactionsPage = () => {
     if (window.confirm("Are you sure you want to delete this transaction?")) {
       try {
         await api.delete(`/transactions/${id}`);
-        fetchData();
+        // Compute the new transactions array after deletion
+        setTransactions(prev => {
+          const updatedTransactions = prev.filter(t => t._id !== id);
+          if (updatedTransactions.length === 0 && page > 1) {
+            setPage(page - 1); // useEffect will trigger fetchData
+          } else {
+            fetchData();
+          }
+          return updatedTransactions;
+        });
       } catch (error) {
         console.error("Failed to delete transaction", error);
       }
     }
   };
 
+  const toggleSelect = (id) => {
+    setSelectedTransactionIds(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+  
+  const handleBulkDelete = async () => {
+    if (!selectedTransactionIds.length) return;
+    
+    const confirmMessage = `Are you sure you want to permanently delete these ${selectedTransactionIds.length} transactions? This action cannot be undone.`;
+    if (window.confirm(confirmMessage)) {
+      try {
+        await api.delete('/transactions/bulk', { 
+          data: { transactionIds: selectedTransactionIds } 
+        });
+        setSelectedTransactionIds([]);
+        fetchData(); // Refetch data
+      } catch (error) {
+        console.error('Failed to bulk delete transactions', error);
+        alert('Failed to delete transactions. Please try again.');
+      }
+    }
+  };
   const handleNewCategory = (newCategory, isIncome) => {
     if (isIncome) {
       setIncomeCategories(prev => [...prev, newCategory].sort());
     } else {
       setExpenseCategories(prev => [...prev, newCategory].sort());
     }
+
   };
 
   const handleDeleteCategory = async (categoryToDelete) => {
@@ -202,7 +258,12 @@ const TransactionsPage = () => {
     <>
       <div className="flex flex-wrap gap-4 justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
+          {selectedTransactionIds.length > 0 && 
+            <button onClick={handleBulkDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+              Delete ({selectedTransactionIds.length})
+            </button>
+          }
           <button onClick={() => setIsCategoryModalOpen(true)} className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
             Manage Categories
           </button>
@@ -221,7 +282,6 @@ const TransactionsPage = () => {
       {/* Search and Filters */}
       <div className="mb-4 bg-white p-4 rounded-lg shadow">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-          {/* Search Bar */}
           <div className="lg:col-span-4">
             <input
               type="text"
@@ -231,16 +291,10 @@ const TransactionsPage = () => {
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-
-          {/* Type Filter */}
           <div className="lg:col-span-2">
             <select
-              id="type-filter"
               value={typeFilter}
-              onChange={(e) => {
-                setTypeFilter(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Types</option>
@@ -248,16 +302,10 @@ const TransactionsPage = () => {
               <option value="expense">Expense</option>
             </select>
           </div>
-
-          {/* Category Filter */}
           <div className="lg:col-span-2">
             <select
-              id="category-filter"
               value={categoryFilter}
-              onChange={(e) => {
-                setCategoryFilter(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Categories</option>
@@ -268,77 +316,36 @@ const TransactionsPage = () => {
               ))}
             </select>
           </div>
-
-          {/* Start Date */}
           <div className="lg:col-span-2 relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500 pointer-events-none">
-              From:
-            </div>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500 pointer-events-none">From:</span>
             <input
               type="date"
-              id="date-from"
               value={dateFrom}
-              onChange={(e) => {
-                setDateFrom(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
               className="w-full pl-14 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-
-          {/* End Date */}
           <div className="lg:col-span-2 relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500 pointer-events-none">
-              To:
-            </div>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500 pointer-events-none">To:</span>
             <input
               type="date"
-              id="date-to"
               value={dateTo}
-              onChange={(e) => {
-                setDateTo(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
               className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
-
-        {/* Active Filters and Clear Button */}
         {hasActiveFilters && (
           <div className="flex flex-wrap justify-between items-center gap-3 mt-3 pt-3 border-t border-gray-200">
             <div className="flex flex-wrap gap-2">
               <span className="text-xs font-medium text-gray-600">Active:</span>
-              {searchTerm && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  "{searchTerm}"
-                </span>
-              )}
-              {typeFilter !== 'all' && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  {typeFilter === 'income' ? 'Income' : 'Expense'}
-                </span>
-              )}
-              {categoryFilter !== 'all' && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                  {categoryFilter}
-                </span>
-              )}
-              {dateFrom && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                  From: {new Date(dateFrom).toLocaleDateString()}
-                </span>
-              )}
-              {dateTo && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                  To: {new Date(dateTo).toLocaleDateString()}
-                </span>
-              )}
+              {searchTerm && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">"{searchTerm}"</span>}
+              {typeFilter !== 'all' && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{typeFilter === 'income' ? 'Income' : 'Expense'}</span>}
+              {categoryFilter !== 'all' && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">{categoryFilter}</span>}
+              {dateFrom && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">From: {new Date(dateFrom).toLocaleDateString()}</span>}
+              {dateTo && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">To: {new Date(dateTo).toLocaleDateString()}</span>}
             </div>
-            <button
-              onClick={clearAllFilters}
-              className="px-3 py-1 bg-red-500 text-white text-xs rounded-md hover:bg-red-600 transition-colors duration-200"
-            >
+            <button onClick={clearAllFilters} className="px-3 py-1 bg-red-500 text-white text-xs rounded-md hover:bg-red-600">
               Clear Filters
             </button>
           </div>
@@ -347,11 +354,20 @@ const TransactionsPage = () => {
       {loading ? (
         <Spinner />
       ) : (
-        <div className={`bg-white shadow rounded-lg overflow-x-auto transition-opacity duration-200 ${isFiltering ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+        <div className={`bg-white shadow rounded-lg overflow-x-auto hover:shadow-lg transition-all duration-300 ${isFiltering ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
         {transactions.length > 0 ? (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                 <th className="px-2 py-3">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded focus:ring-2 focus:ring-blue-600 hover:ring-4 hover:ring-blue-200 transition-all duration-200 cursor-pointer"
+                      checked={transactions.length > 0 && selectedTransactionIds.length === transactions.length}
+                      disabled={transactions.length === 0}
+                      onChange={() => setSelectedTransactionIds(selectedTransactionIds.length ? [] : transactions.map(t => t._id))}
+                    />
+                  </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
@@ -362,7 +378,15 @@ const TransactionsPage = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {transactions.map((tx) => (
-                <tr key={tx._id}>
+                <tr key={tx._id} className="hover:shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-shadow duration-200">
+                  <td className="px-2 py-6 text-center">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded focus:ring-2 focus:ring-blue-600 hover:ring-4 hover:ring-blue-200 transition-all duration-200 cursor-pointer"
+                        checked={selectedTransactionIds.includes(tx._id)}
+                        onChange={() => toggleSelect(tx._id)}
+                      />
+                    </td>
                   <td className="px-6 py-4 whitespace-nowrap">{tx.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{tx.category}</td>
                   <td className={`px-6 py-4 whitespace-nowrap font-semibold ${tx.isIncome ? 'text-green-600' : 'text-red-600'}`}>
@@ -381,9 +405,23 @@ const TransactionsPage = () => {
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onClick={() => handleOpenTransactionModal(tx)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
-                    <button onClick={() => handleDeleteTransaction(tx._id)} className="text-red-600 hover:text-red-900">Delete</button>
-                  </td>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleOpenTransactionModal(tx)}
+                          className="text-indigo-600 hover:text-indigo-900 p-2 rounded-full hover:bg-indigo-50 transition-all duration-200"
+                          title="Edit transaction"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTransaction(tx._id)}
+                          className="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-50 transition-all duration-200"
+                          title="Delete transaction"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
                 </tr>
               ))}
             </tbody>
@@ -396,15 +434,33 @@ const TransactionsPage = () => {
         </div>
       )}
 
-      <div className="flex justify-between items-center mt-4">
-        <button onClick={() => setPage(p => Math.max(p - 1, 1))} disabled={page === 1} className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
-          Previous
-        </button>
-        <span>Page {page} of {totalPages}</span>
-        <button onClick={() => setPage(p => Math.min(p + 1, totalPages))} disabled={page === totalPages} className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
-          Next
-        </button>
-      </div>
+      {!loading && totalPages > 1 && (
+        <div className="flex justify-between items-center mt-6">
+          <button 
+            onClick={() => setPage(p => Math.max(p - 1, 1))} 
+            disabled={page === 1} 
+            className="flex items-center justify-center w-10 h-10 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            title="Previous page"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Page</span>
+            <span className="px-3 py-1 bg-blue-600 text-white rounded-lg font-medium">{page}</span>
+            <span className="text-sm text-gray-600">of {totalPages}</span>
+          </div>
+          
+          <button 
+            onClick={() => setPage(p => Math.min(p + 1, totalPages))} 
+            disabled={page === totalPages} 
+            className="flex items-center justify-center w-10 h-10 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            title="Next page"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      )}
 
       <TransactionModal
         isOpen={isTransactionModalOpen}
