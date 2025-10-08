@@ -61,9 +61,9 @@ cron.schedule("*/10 * * * *", async () => {
 
   try {
     await axios.get(keepAliveUrl);
-    console.log("Keep-alive ping sent ✅");
+    console.log("Keep-alive ping sent!");
   } catch (error) {
-    console.error("Keep-alive failed ❌", error.message);
+    console.error("Keep-alive FAILED!", error.message);
   }
 });
 
