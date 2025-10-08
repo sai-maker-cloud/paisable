@@ -1,22 +1,22 @@
 const mongoose = require('mongoose');
 const IncomeExpense = require('./models/IncomeExpense'); // adjust path if needed
+const User = require('./models/User'); // adjust path if needed
 
 // 👇 Replace this with a valid ObjectId from your User collection
-const userId = new mongoose.Types.ObjectId("68e60a61599d061c090b8e61");
 
 const MONGO_URI = "mongodb://127.0.0.1:27017/paisable";
 
 mongoose.connect(MONGO_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 const categories = ["Food", "Transport", "Rent", "Utilities", "Entertainment", "Freelance", "Salary", "Investments"];
 const names = ["Lunch", "Bus Fare", "Netflix", "Electric Bill", "Client Payment", "Bonus", "Snacks", "Movie"];
 
 async function seedData() {
   try {
+    const userId = await User.findOne().then(user => user ? user._id : null);
     await IncomeExpense.deleteMany({});
-    console.log("🧹 Cleared existing data");
 
     const records = [];
     const today = new Date();
@@ -44,12 +44,12 @@ async function seedData() {
     }
 
     await IncomeExpense.insertMany(records);
-    console.log(`✅ Inserted ${records.length} income/expense records`);
+    console.log(`Inserted ${records.length} income/expense records`);
 
     mongoose.connection.close();
-    console.log('🔌 MongoDB connection closed');
+    console.log('MongoDB connection closed');
   } catch (err) {
-    console.error('❌ Seeding failed:', err);
+    console.error('Seeding failed:', err);
     mongoose.connection.close();
   }
 }

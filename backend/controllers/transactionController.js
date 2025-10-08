@@ -135,8 +135,8 @@ const bulkDeleteTransactions = async (req, res) => {
     });
 
     if (transactions.length !== transactionIds.length) {
-      return res.status(404).json({
-        message: 'Some transactions not found or not authorized'
+      return res.status(404).json({ 
+        message: 'Some transactions not found or not authorized' 
       });
     }
 
@@ -149,7 +149,7 @@ const bulkDeleteTransactions = async (req, res) => {
       { isDeleted: true }
     );
 
-    res.json({
+    res.json({ 
       message: `${result.modifiedCount} transactions deleted successfully`,
       deletedCount: result.modifiedCount
     });
