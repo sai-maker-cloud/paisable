@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 
 const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
   const [formData, setFormData] = useState({
-    category: "",
-    amount: "",
+    category: '',
+    amount: '',
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
   });
@@ -18,8 +18,8 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
       });
     } else {
       setFormData({
-        category: categories[0] || "",
-        amount: "",
+        category: categories[0] || '',
+        amount: '',
         month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),
       });
@@ -28,6 +28,13 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'month') {
+      const num = parseInt(value, 10);
+      if (num < 1) return setFormData((prev) => ({ ...prev, month: 1 }));
+      if (num > 12) return setFormData((prev) => ({ ...prev, month: 12 }));
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -39,23 +46,22 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
-        <h2 className="text-xl font-bold mb-4">
-          {budget ? "Edit Budget" : "Add Budget"}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-4">
+          {budget ? 'Edit Budget' : 'Add Budget'}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Category
-            </label>
+        <form onSubmit={handleSubmit}>
+          {/* Category */}
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-1">Category</label>
             <select
               name="category"
               value={formData.category}
               onChange={handleChange}
               required
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              className="w-full px-3 py-2 border rounded"
             >
               {categories.map((c) => (
                 <option key={c} value={c}>
@@ -65,10 +71,9 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Amount
-            </label>
+          {/* Amount */}
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-1">Amount</label>
             <input
               type="number"
               name="amount"
@@ -76,14 +81,13 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
               onChange={handleChange}
               required
               min="0"
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              className="w-full px-3 py-2 border rounded"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Month
-            </label>
+          {/* Month */}
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-1">Month</label>
             <input
               type="number"
               name="month"
@@ -92,14 +96,13 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
               min="1"
               max="12"
               required
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              className="w-full px-3 py-2 border rounded"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Year
-            </label>
+          {/* Year */}
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-1">Year</label>
             <input
               type="number"
               name="year"
@@ -108,23 +111,24 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, budget, categories }) => {
               required
               min="2000"
               max="2100"
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              className="w-full px-3 py-2 border rounded"
             />
           </div>
 
-          <div className="flex justify-end gap-4 mt-6">
+          {/* Buttons */}
+          <div className="flex justify-end space-x-4 mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              {budget ? "Update" : "Add"}
+              {budget ? 'Update' : 'Add'}
             </button>
           </div>
         </form>

@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
-import api from "../api/axios";
-import Spinner from "../components/Spinner";
-import useCurrency from "../hooks/useCurrency";
-import BudgetModal from "../components/BudgetModal";
+import React, { useState, useEffect, useCallback } from 'react';
+import api from '../api/axios';
+import Spinner from '../components/Spinner';
+import useCurrency from '../hooks/useCurrency';
+import BudgetModal from '../components/BudgetModal';
+import EmptyState from '../components/EmptyState';
 
 const Budgets = () => {
   const [budgets, setBudgets] = useState([]);
@@ -17,15 +18,15 @@ const Budgets = () => {
     setLoading(true);
     try {
       const [budgetsRes, categoriesRes, transactionsRes] = await Promise.all([
-        api.get("/budgets"),
-        api.get("/transactions/categories"),
-        api.get("/transactions"),
+        api.get('/budgets'),
+        api.get('/transactions/categories/expense'),
+        api.get('/transactions'),
       ]);
       setBudgets(budgetsRes.data);
       setCategories(categoriesRes.data);
       setTransactions(transactionsRes.data.transactions || []);
     } catch (error) {
-      console.error("Failed to fetch budgets or transactions", error);
+      console.error('Failed to fetch budgets or transactions', error);
     } finally {
       setLoading(false);
     }
@@ -48,21 +49,21 @@ const Budgets = () => {
   const handleFormSubmit = async (formData, id) => {
     try {
       if (id) await api.put(`/budgets/${id}`, formData);
-      else await api.post("/budgets", formData);
+      else await api.post('/budgets', formData);
       fetchData();
       handleCloseBudgetModal();
     } catch (error) {
-      console.error("Failed to save budget", error);
+      console.error('Failed to save budget', error);
     }
   };
 
   const handleDeleteBudget = async (id) => {
-    if (window.confirm("Are you sure you want to delete this budget?")) {
+    if (window.confirm('Are you sure you want to delete this budget?')) {
       try {
         await api.delete(`/budgets/${id}`);
         fetchData();
       } catch (error) {
-        console.error("Failed to delete budget", error);
+        console.error('Failed to delete budget', error);
       }
     }
   };
@@ -96,8 +97,8 @@ const Budgets = () => {
 
       {loading ? (
         <Spinner />
-      ) : (
-        <div className="bg-white shadow rounded-lg overflow-x-auto">
+      ) : budgets.length > 0 ? (
+        <div className="bg-white shadow rounded-lg overflow-x-auto hover:shadow-lg transition-all duration-300">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -137,28 +138,26 @@ const Budgets = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {b.category}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold">{`${b.month}/${b.year}`}</td>
                     <td className="px-6 py-4 whitespace-nowrap font-semibold">
-                      {`${b.month}/${b.year}`}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap font-semibold">
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
                         currency: currency.code,
                       }).format(b.amount)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-red-600 font-semibold">
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
                         currency: currency.code,
                       }).format(spent)}
                     </td>
                     <td
                       className={`px-6 py-4 whitespace-nowrap font-semibold ${
-                        remaining >= 0 ? "text-green-600" : "text-red-600"
+                        remaining >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}
                     >
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
                         currency: currency.code,
                       }).format(remaining)}
                     </td>
@@ -167,10 +166,10 @@ const Budgets = () => {
                         <div
                           className={`h-3 rounded-full ${
                             percent < 80
-                              ? "bg-green-500"
+                              ? 'bg-green-500'
                               : percent < 100
-                              ? "bg-yellow-500"
-                              : "bg-red-600"
+                              ? 'bg-yellow-500'
+                              : 'bg-red-600'
                           }`}
                           style={{ width: `${percent}%` }}
                         ></div>
@@ -198,6 +197,10 @@ const Budgets = () => {
             budget={editingBudget}
             categories={categories}
           />
+        </div>
+      ) : (
+        <div className="p-6 bg-white shadow rounded-lg">
+          <EmptyState message="No budgets found" />
         </div>
       )}
     </>
