@@ -40,6 +40,7 @@ const FeatureCard = ({ icon, title, children }) => {
 
 export default function WelcomePage() {
   const { user } = useAuth();
+  const { logout } = useAuth();
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen font-montserrat text-gray-800 dark:text-gray-200">
@@ -53,7 +54,7 @@ export default function WelcomePage() {
           {user ? (
             <>
               <Link to="/dashboard" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-semibold">Dashboard</Link>
-              <Link to="/transactions" className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700">Transactions</Link>
+              <button onClick={logout} className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700">Logout</button>
             </>
           ) : (
             <>
