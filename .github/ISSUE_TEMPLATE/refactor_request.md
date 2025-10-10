@@ -26,7 +26,7 @@ assignees: ""
 - [ ] Remove code duplication
 - [ ] Better separation of concerns
 - [ ] Follow best practices
-- [ ] Other: **\_**
+- [ ] Other: **[Please specify]**
 
 ## Benefits
 
