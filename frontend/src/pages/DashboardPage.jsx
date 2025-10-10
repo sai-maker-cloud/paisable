@@ -171,7 +171,7 @@ const DashboardPage = () => {
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md h-[500px]">
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Income Vs Time</h2>
           {loading ? <Spinner /> : chartData?.incomeOverTime.length > 0 ? (
-            <LineChart data={chartData.incomeOverTime} theme={theme} />
+            <LineChart label={"Income"} data={chartData.incomeOverTime} theme={theme} />
           ) : (
             <EmptyState message="No income data to display." icon={<IoWarning className="w-6 h-6 text-yellow-500" />} />
           )}
@@ -179,7 +179,7 @@ const DashboardPage = () => {
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md h-[500px]">
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Expense Vs Time</h2>
           {loading ? <Spinner /> : chartData?.expensesOverTime.length > 0 ? (
-            <LineChart data={chartData.expensesOverTime} theme={theme} />
+            <LineChart label={"Expenses"} data={chartData.expensesOverTime} theme={theme} />
           ) : (
             <EmptyState message="No income data to display." icon={<IoWarning className="w-6 h-6 text-yellow-500" />} />
           )}
