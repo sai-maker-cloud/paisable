@@ -13,8 +13,8 @@ Paisable is a **full-stack personal finance management app** built with **React 
 
 ## Deployment Links
 
-* Frontend: [https://paisable.netlify.app/](https://paisable.netlify.app/)
-* Backend: [https://paisable.onrender.com](https://paisable.onrender.com)
+* Frontend: [Netlify](https://paisable.netlify.app/)
+* Backend: [Render](https://paisable.onrender.com)
 
 ## Tech Stack
 
@@ -89,7 +89,7 @@ Paisable is a **full-stack personal finance management app** built with **React 
 
 Before cloning, make sure to fork the repository to your GitHub account.
 
-1. Go to the GitHub repo page: [https://github.com/Code-A2Z/paisable](https://github.com/Code-A2Z/paisable)
+1. Go to the GitHub repo page: https://github.com/Code-A2Z/paisable
 2. Click Fork in the top-right corner.
 
 ### Clone your fork
@@ -207,7 +207,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 Please refer to our [Contributing Guide](CONTRIBUTING.md) for detailed instructions on how to get started with your contribution.
 
-## Contributors ✨
+## Contributors
 
 We'd like to extend our heartfelt thanks to everyone who has contributed to **Paisable** — whether through code, design, documentation, bug reports, or ideas. Your efforts make this project better for everyone. 💖
 
@@ -219,7 +219,7 @@ We'd like to extend our heartfelt thanks to everyone who has contributed to **Pa
 
 * [@archa8](https://github.com/archa8) – Project Developer & Maintainer
 
-> Want to see your name here? Check out our [Contributing Guide](CONTRIBUTING.md) and submit your first pull request! 🚀
+> Want to see your name here? Check out our [Contributing Guide](CONTRIBUTING.md) and submit your first pull request!
 
 ## License
 
