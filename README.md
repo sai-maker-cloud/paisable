@@ -218,6 +218,7 @@ We'd like to extend our heartfelt thanks to everyone who has contributed to **Pa
 ### 🙌 Individual Acknowledgments
 
 * [@archa8](https://github.com/archa8) – Project Developer & Maintainer
+* [@Avdhesh-Varshney](https://github.com/Avdhesh-Varshney) - Maintainer
 
 > Want to see your name here? Check out our [Contributing Guide](CONTRIBUTING.md) and submit your first pull request!
 
